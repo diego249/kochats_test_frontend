@@ -65,17 +65,32 @@ export default function BotsPage() {
 
   const handleCreateBot = async (e: React.FormEvent) => {
     e.preventDefault()
+
     try {
-      await createBot({
+      const dataSourceId = Number.parseInt(formData.data_source)
+      if (Number.isNaN(dataSourceId)) {
+        alert("Please select a data source")
+        return
+      }
+
+      // Armamos el payload base
+      const payload: any = {
         name: formData.name,
         description: formData.description,
-        data_source: Number.parseInt(formData.data_source),
+        data_source: dataSourceId,
         openai_model: formData.openai_model,
-        system_prompt: formData.system_prompt,
         temperature: formData.temperature,
         max_tokens: formData.max_tokens,
         row_limit: formData.row_limit,
-      })
+      }
+
+      // Solo mandamos system_prompt si el usuario escribió algo
+      if (formData.system_prompt.trim().length > 0) {
+        payload.system_prompt = formData.system_prompt
+      }
+
+      await createBot(payload)
+
       setDialogOpen(false)
       setFormData({
         name: "",
@@ -87,10 +102,11 @@ export default function BotsPage() {
         max_tokens: 512,
         row_limit: 200,
       })
+
       await loadData()
     } catch (error: any) {
       console.error("Error creating bot:", error)
-      alert(error.message)
+      alert(error?.message ?? "Failed to create bot")
     }
   }
 
