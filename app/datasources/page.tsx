@@ -6,8 +6,9 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/sidebar"
 import { DashboardHeader } from "@/components/dashboard-header"
+import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -16,7 +17,7 @@ import { getAuthToken } from "@/lib/auth"
 import { listDataSources, createDataSource, deleteDataSource, testDataSourceConnection } from "@/lib/api"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Loader } from "lucide-react"
+import { Plus, Trash2, Loader, Database, Check, X } from "lucide-react"
 
 export default function DataSourcesPage() {
   const router = useRouter()
@@ -25,6 +26,12 @@ export default function DataSourcesPage() {
   const [testing, setTesting] = useState<number | null>(null)
   const [testResult, setTestResult] = useState<{ id: number; success: boolean; message: string } | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; dsId: number | null; dsName: string }>({
+    isOpen: false,
+    dsId: null,
+    dsName: "",
+  })
+  const [isDeleting, setIsDeleting] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     engine: "postgres",
@@ -104,15 +111,18 @@ export default function DataSourcesPage() {
     }
   }
 
-  const handleDeleteDataSource = async (id: number) => {
-    if (confirm("Are you sure you want to delete this data source?")) {
-      try {
-        await deleteDataSource(id)
-        await loadDataSources()
-      } catch (error) {
-        console.error("Error deleting datasource:", error)
-        alert("Failed to delete data source")
-      }
+  const handleDeleteDataSource = async () => {
+    if (!deleteModal.dsId) return
+    setIsDeleting(true)
+    try {
+      await deleteDataSource(deleteModal.dsId)
+      setDataSources(dataSources.filter((ds) => ds.id !== deleteModal.dsId))
+      setDeleteModal({ isOpen: false, dsId: null, dsName: "" })
+    } catch (error) {
+      console.error("Error deleting datasource:", error)
+      alert("Failed to delete data source")
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -123,11 +133,15 @@ export default function DataSourcesPage() {
         <DashboardHeader />
         <div className="flex-1 overflow-auto">
           <div className="p-8 space-y-6">
+            {/* Header */}
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold text-foreground">Data Sources</h1>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Data Sources</h1>
+                <p className="text-sm text-muted-foreground mt-1">Manage your database connections</p>
+              </div>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2">
+                  <Button className="gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/20">
                     <Plus className="w-4 h-4" />
                     New Data Source
                   </Button>
@@ -231,17 +245,36 @@ export default function DataSourcesPage() {
               </Dialog>
             </div>
 
+            {/* Alert */}
             {testResult && (
-              <Alert variant={testResult.success ? "default" : "destructive"}>
-                <AlertDescription>{testResult.message}</AlertDescription>
+              <Alert
+                variant={testResult.success ? "default" : "destructive"}
+                className="transition-all duration-200 border-border/50"
+              >
+                <AlertDescription className="flex items-center gap-2">
+                  {testResult.success ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                  {testResult.message}
+                </AlertDescription>
               </Alert>
             )}
 
-            <Card className="bg-card/50 border-border/50">
+            {/* Data Sources Card */}
+            <Card className="bg-card/40 border-border/40">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Database className="w-5 h-5 text-secondary" />
+                    Connected Sources
+                  </CardTitle>
+                  <span className="text-xs px-2 py-1 rounded-full bg-secondary/10 text-secondary">
+                    {dataSources.length} sources
+                  </span>
+                </div>
+              </CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-border/50">
+                    <TableRow className="border-border/30">
                       <TableHead>Name</TableHead>
                       <TableHead>Engine</TableHead>
                       <TableHead>Host</TableHead>
@@ -250,13 +283,33 @@ export default function DataSourcesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {dataSources.map((ds) => (
-                      <TableRow key={ds.id} className="border-border/50">
-                        <TableCell className="font-medium">{ds.name}</TableCell>
-                        <TableCell className="capitalize">{ds.engine}</TableCell>
-                        <TableCell>{ds.config.host}</TableCell>
+                    {dataSources.map((ds, idx) => (
+                      <TableRow
+                        key={ds.id}
+                        className="border-border/30 hover:bg-secondary/5 transition-colors duration-200"
+                        style={{
+                          animation: `slideIn 0.3s ease-out ${idx * 50}ms forwards`,
+                          opacity: 0,
+                        }}
+                      >
+                        <style>{`
+                          @keyframes slideIn {
+                            from { opacity: 0; transform: translateX(-8px); }
+                            to { opacity: 1; transform: translateX(0); }
+                          }
+                        `}</style>
+                        <TableCell className="font-medium text-foreground">{ds.name}</TableCell>
+                        <TableCell className="capitalize text-muted-foreground">{ds.engine}</TableCell>
+                        <TableCell className="text-muted-foreground">{ds.config.host}</TableCell>
                         <TableCell>
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-secondary/10 text-secondary">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                              ds.is_active ? "bg-green-500/10 text-green-600" : "bg-muted/50 text-muted-foreground"
+                            }`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${ds.is_active ? "bg-green-600" : "bg-muted-foreground"}`}
+                            />
                             {ds.is_active ? "Active" : "Inactive"}
                           </span>
                         </TableCell>
@@ -266,10 +319,16 @@ export default function DataSourcesPage() {
                             variant="outline"
                             onClick={() => handleTestConnection(ds.id)}
                             disabled={testing === ds.id}
+                            className="transition-all duration-200 hover:border-secondary/50"
                           >
                             {testing === ds.id ? <Loader className="w-4 h-4 animate-spin" /> : "Test"}
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleDeleteDataSource(ds.id)}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setDeleteModal({ isOpen: true, dsId: ds.id, dsName: ds.name })}
+                            className="transition-all duration-200 hover:border-destructive/50 hover:text-destructive"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </TableCell>
@@ -277,11 +336,27 @@ export default function DataSourcesPage() {
                     ))}
                   </TableBody>
                 </Table>
+                {dataSources.length === 0 && !loading && (
+                  <div className="p-8 text-center">
+                    <Database className="w-12 h-12 text-muted-foreground/20 mx-auto mb-2" />
+                    <p className="text-muted-foreground mb-4">No data sources yet. Create one to get started.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        title="Delete Data Source"
+        description="Are you sure you want to delete this data source? Any bots using this source may stop working."
+        itemName={deleteModal.dsName}
+        onConfirm={handleDeleteDataSource}
+        onCancel={() => setDeleteModal({ isOpen: false, dsId: null, dsName: "" })}
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

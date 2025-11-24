@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { LogOut, LayoutDashboard, Database, Bot } from "lucide-react"
+import { LogOut, LayoutDashboard, Database, Bot, ChevronRight } from "lucide-react"
 import { logout } from "@/lib/api"
 import { clearAuthToken } from "@/lib/auth"
 
@@ -29,12 +29,20 @@ export function Sidebar() {
   ]
 
   return (
-    <div className="w-64 h-screen bg-card border-r border-border flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-border">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Kochats
-        </h1>
+    <div className="w-64 h-screen bg-gradient-to-b from-card via-card to-card/95 border-r border-border/30 flex flex-col transition-all duration-300">
+      {/* Logo Section */}
+      <div className="p-6 border-b border-border/20">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+            <Bot className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Kochats
+            </h1>
+            <p className="text-xs text-muted-foreground">AI Bot Platform</p>
+          </div>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -44,26 +52,24 @@ export function Sidebar() {
           const isActive = pathname === item.href
           return (
             <Link key={item.href} href={item.href}>
-              <Button variant={isActive ? "default" : "ghost"} className="w-full justify-start gap-3">
-                <Icon className="w-4 h-4" />
-                {item.label}
+              <Button
+                variant={isActive ? "default" : "ghost"}
+                className={`w-full justify-between gap-3 transition-all duration-200 ${
+                  isActive
+                    ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/20"
+                    : "hover:bg-secondary/10 text-foreground"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className="w-4 h-4" />
+                  {item.label}
+                </div>
+                {isActive && <ChevronRight className="w-4 h-4" />}
               </Button>
             </Link>
           )
         })}
       </nav>
-
-      {/* Logout */}
-      <div className="p-4 border-t border-border">
-        <Button
-          variant="outline"
-          className="w-full justify-start gap-3 text-destructive hover:text-destructive bg-transparent"
-          onClick={handleLogout}
-        >
-          <LogOut className="w-4 h-4" />
-          Logout
-        </Button>
-      </div>
     </div>
   )
 }

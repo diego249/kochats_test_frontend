@@ -38,6 +38,10 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
     throw new Error(error.detail || error.message || `API error: ${response.status}`)
   }
 
+  if (response.status === 204) {
+    return {} as T
+  }
+
   return response.json()
 }
 

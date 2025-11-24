@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { setAuthToken } from "@/lib/auth"
 import { login as apiLogin } from "@/lib/api"
+import { Lock, Mail } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -36,59 +37,78 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-card border border-border rounded-lg p-8 space-y-6">
+        <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-8 space-y-6 shadow-lg shadow-primary/5">
           {/* Logo */}
-          <div className="text-center">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
+          <div className="text-center space-y-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Kochats
             </h1>
-            <p className="text-muted-foreground">Sign in to your account</p>
+            <p className="text-sm text-muted-foreground">Welcome back to your AI assistant platform</p>
           </div>
 
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="border-destructive/50 bg-destructive/5">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="username">Username or Email</Label>
-              <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username or email"
-                required
-                disabled={loading}
-              />
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-sm font-medium">
+                Username or Email
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username or email"
+                  required
+                  disabled={loading}
+                  className="pl-10 transition-all duration-200 focus:ring-primary/20"
+                />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-                disabled={loading}
-              />
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium">
+                Password
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  disabled={loading}
+                  className="pl-10 transition-all duration-200 focus:ring-primary/20"
+                />
+              </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full transition-all duration-200 hover:shadow-lg hover:shadow-primary/20"
+              disabled={loading}
+            >
               {loading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
 
-          <div className="text-center text-sm text-muted-foreground">
+          <div className="pt-2 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-primary hover:underline">
-              Sign up
+            <Link
+              href="/register"
+              className="text-primary font-medium hover:text-primary/80 transition-colors duration-200"
+            >
+              Create one
             </Link>
           </div>
         </div>

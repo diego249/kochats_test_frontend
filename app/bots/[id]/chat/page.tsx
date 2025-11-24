@@ -171,7 +171,7 @@ export default function ChatPage() {
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
+        <div className="h-16 bg-card border-b border-border/50 flex items-center justify-between px-6">
           <div className="flex items-center gap-4 flex-1">
             <Link href="/bots">
               <Button variant="ghost" size="icon">
@@ -211,7 +211,7 @@ export default function ChatPage() {
                           setEditingTitle(true)
                           setEditedTitle(conversationTitle)
                         }}
-                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        className="text-muted-foreground hover:text-foreground transition-colors duration-200"
                       >
                         <Pencil className="w-3 h-3" />
                       </button>
@@ -228,7 +228,7 @@ export default function ChatPage() {
           {messages.length === 0 && pendingMessages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center text-muted-foreground">
-                <p>Start a conversation with {bot?.name}</p>
+                <p className="text-sm">Start a conversation with {bot?.name}</p>
               </div>
             </div>
           ) : (
@@ -236,17 +236,19 @@ export default function ChatPage() {
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-md rounded-lg p-4 ${
+                    className={`max-w-md rounded-lg p-4 transition-all duration-200 ${
                       msg.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-card border border-border text-foreground"
+                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/30 hover:shadow-lg hover:shadow-primary/40"
+                        : "bg-card/70 border border-border/50 text-foreground hover:bg-card/90 hover:border-border"
                     }`}
                   >
-                    <p className="text-sm">{msg.content}</p>
+                    <p className="text-sm leading-relaxed">{msg.content}</p>
                     {msg.metadata && msg.metadata.sql && (
-                      <details className="mt-2 pt-2 border-t border-border/50">
-                        <summary className="text-xs cursor-pointer opacity-70 hover:opacity-100">Debug Info</summary>
-                        <pre className="mt-2 text-xs bg-background/50 p-2 rounded overflow-auto">
+                      <details className="mt-3 pt-3 border-t border-border/50">
+                        <summary className="text-xs cursor-pointer opacity-60 hover:opacity-100 transition-opacity duration-200">
+                          Debug Info
+                        </summary>
+                        <pre className="mt-2 text-xs bg-background/50 p-2 rounded overflow-auto max-h-40">
                           {JSON.stringify(msg.metadata, null, 2)}
                         </pre>
                       </details>
@@ -260,11 +262,15 @@ export default function ChatPage() {
                   <div
                     className={`max-w-md rounded-lg p-4 ${
                       msg.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-card border border-border text-foreground"
+                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+                        : "bg-card/70 border border-border/50 text-foreground"
                     }`}
                   >
-                    {msg.role === "assistant" ? <TypingIndicator /> : <p className="text-sm">{msg.content}</p>}
+                    {msg.role === "assistant" ? (
+                      <TypingIndicator />
+                    ) : (
+                      <p className="text-sm leading-relaxed">{msg.content}</p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -274,8 +280,8 @@ export default function ChatPage() {
         </div>
 
         {/* Input */}
-        <div className="border-t border-border p-6 bg-card">
-          <form onSubmit={handleSendMessage} className="flex gap-2">
+        <div className="border-t border-border/50 p-6 bg-card">
+          <form onSubmit={handleSendMessage} className="flex gap-3">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}

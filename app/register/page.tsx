@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { setAuthToken } from "@/lib/auth"
 import { register as apiRegister } from "@/lib/api"
+import { Lock, Mail, User } from "lucide-react"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -37,71 +38,96 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-card border border-border rounded-lg p-8 space-y-6">
+        <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-8 space-y-6 shadow-lg shadow-primary/5">
           {/* Logo */}
-          <div className="text-center">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
+          <div className="text-center space-y-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Kochats
             </h1>
-            <p className="text-muted-foreground">Create your account</p>
+            <p className="text-sm text-muted-foreground">Join and start building intelligent bots</p>
           </div>
 
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="border-destructive/50 bg-destructive/5">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                disabled={loading}
-              />
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium">
+                Email
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                  disabled={loading}
+                  className="pl-10 transition-all duration-200 focus:ring-primary/20"
+                />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Choose a username"
-                required
-                disabled={loading}
-              />
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-sm font-medium">
+                Username
+              </Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Choose a username"
+                  required
+                  disabled={loading}
+                  className="pl-10 transition-all duration-200 focus:ring-primary/20"
+                />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a password"
-                required
-                disabled={loading}
-              />
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium">
+                Password
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Create a password"
+                  required
+                  disabled={loading}
+                  className="pl-10 transition-all duration-200 focus:ring-primary/20"
+                />
+              </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full transition-all duration-200 hover:shadow-lg hover:shadow-primary/20"
+              disabled={loading}
+            >
               {loading ? "Creating account..." : "Create account"}
             </Button>
           </form>
 
-          <div className="text-center text-sm text-muted-foreground">
+          <div className="pt-2 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary hover:underline">
+            <Link
+              href="/login"
+              className="text-primary font-medium hover:text-primary/80 transition-colors duration-200"
+            >
               Sign in
             </Link>
           </div>
