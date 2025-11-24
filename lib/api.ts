@@ -123,8 +123,28 @@ export function deleteBot(id: number) {
 }
 
 // Conversation endpoints
-export function listConversations() {
+export function listConversations(botId?: number) {
+  if (botId) {
+    return apiCall(`/api/conversations/?bot_id=${botId}`)
+  }
   return apiCall("/api/conversations/")
+}
+
+export function getConversation(id: number) {
+  return apiCall(`/api/conversations/${id}/`)
+}
+
+export function renameConversation(id: number, title: string) {
+  return apiCall(`/api/conversations/${id}/`, {
+    method: "PATCH",
+    body: JSON.stringify({ title }),
+  })
+}
+
+export function deleteConversation(id: number) {
+  return apiCall(`/api/conversations/${id}/`, {
+    method: "DELETE",
+  })
 }
 
 // Chat endpoint
