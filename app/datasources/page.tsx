@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { getAuthToken } from "@/lib/auth"
+import { getAuthToken, getAuthUser } from "@/lib/auth"
 import { listDataSources, createDataSource, deleteDataSource, testDataSourceConnection } from "@/lib/api"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -43,6 +43,7 @@ export default function DataSourcesPage() {
     password: "",
     sslmode: "prefer",
   })
+  const [authUser, setAuthUserState] = useState<any>(null)
 
   useEffect(() => {
     const token = getAuthToken()
@@ -50,6 +51,8 @@ export default function DataSourcesPage() {
       router.push("/login")
       return
     }
+    const user = getAuthUser()
+    setAuthUserState(user)
     loadDataSources()
   }, [router])
 
@@ -140,118 +143,124 @@ export default function DataSourcesPage() {
                 <h1 className="text-3xl font-bold text-foreground">Data Sources</h1>
                 <p className="text-sm text-muted-foreground mt-1">Manage your database connections</p>
               </div>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/20">
-                    <Plus className="w-4 h-4" />
-                    New Data Source
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <div className="flex items-center justify-between">
-                      <DialogTitle>Create Data Source</DialogTitle>
-                      <Link href="/help/security" target="_blank">
-                        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-                          <Info className="w-4 h-4" />
-                          <span className="text-xs">Security Info</span>
-                        </Button>
-                      </Link>
-                    </div>
-                  </DialogHeader>
-                  <form onSubmit={handleCreateDataSource} className="space-y-4">
-                    <div>
-                      <Label>Name</Label>
-                      <Input
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="e.g., My Postgres"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label>Engine</Label>
-                      <Select
-                        value={formData.engine}
-                        onValueChange={(value) => setFormData({ ...formData, engine: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="postgres">PostgreSQL</SelectItem>
-                          <SelectItem value="bigquery">BigQuery</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Host</Label>
-                      <Input
-                        value={formData.host}
-                        onChange={(e) => setFormData({ ...formData, host: e.target.value })}
-                        placeholder="localhost"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label>Port</Label>
-                      <Input
-                        type="number"
-                        value={formData.port}
-                        onChange={(e) => setFormData({ ...formData, port: Number.parseInt(e.target.value) })}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label>Database</Label>
-                      <Input
-                        value={formData.database}
-                        onChange={(e) => setFormData({ ...formData, database: e.target.value })}
-                        placeholder="mydb"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label>User</Label>
-                      <Input
-                        value={formData.user}
-                        onChange={(e) => setFormData({ ...formData, user: e.target.value })}
-                        placeholder="username"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label>Password</Label>
-                      <Input
-                        type="password"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label>SSL Mode</Label>
-                      <Select
-                        value={formData.sslmode}
-                        onValueChange={(value) => setFormData({ ...formData, sslmode: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="disable">Disable</SelectItem>
-                          <SelectItem value="allow">Allow</SelectItem>
-                          <SelectItem value="prefer">Prefer</SelectItem>
-                          <SelectItem value="require">Require</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button type="submit" className="w-full">
-                      Create
+              {authUser?.isOrgOwner && (
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/20">
+                      <Plus className="w-4 h-4" />
+                      New Data Source
                     </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <div className="flex items-center justify-between">
+                        <DialogTitle>Create Data Source</DialogTitle>
+                        <Link href="/help/security" target="_blank">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-2 text-muted-foreground hover:text-foreground"
+                          >
+                            <Info className="w-4 h-4" />
+                            <span className="text-xs">Security Info</span>
+                          </Button>
+                        </Link>
+                      </div>
+                    </DialogHeader>
+                    <form onSubmit={handleCreateDataSource} className="space-y-4">
+                      <div>
+                        <Label>Name</Label>
+                        <Input
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          placeholder="e.g., My Postgres"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>Engine</Label>
+                        <Select
+                          value={formData.engine}
+                          onValueChange={(value) => setFormData({ ...formData, engine: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="postgres">PostgreSQL</SelectItem>
+                            <SelectItem value="bigquery">BigQuery</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Host</Label>
+                        <Input
+                          value={formData.host}
+                          onChange={(e) => setFormData({ ...formData, host: e.target.value })}
+                          placeholder="localhost"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>Port</Label>
+                        <Input
+                          type="number"
+                          value={formData.port}
+                          onChange={(e) => setFormData({ ...formData, port: Number.parseInt(e.target.value) })}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>Database</Label>
+                        <Input
+                          value={formData.database}
+                          onChange={(e) => setFormData({ ...formData, database: e.target.value })}
+                          placeholder="mydb"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>User</Label>
+                        <Input
+                          value={formData.user}
+                          onChange={(e) => setFormData({ ...formData, user: e.target.value })}
+                          placeholder="username"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>Password</Label>
+                        <Input
+                          type="password"
+                          value={formData.password}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>SSL Mode</Label>
+                        <Select
+                          value={formData.sslmode}
+                          onValueChange={(value) => setFormData({ ...formData, sslmode: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="disable">Disable</SelectItem>
+                            <SelectItem value="allow">Allow</SelectItem>
+                            <SelectItem value="prefer">Prefer</SelectItem>
+                            <SelectItem value="require">Require</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button type="submit" className="w-full">
+                        Create
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
 
             {/* Alert */}

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { setAuthToken } from "@/lib/auth"
+import { setAuthToken, setAuthUser } from "@/lib/auth"
 import { login as apiLogin } from "@/lib/api"
 import { Lock, Mail } from "lucide-react"
 
@@ -28,6 +28,16 @@ export default function LoginPage() {
     try {
       const response = await apiLogin(username, password)
       setAuthToken(response.token)
+      setAuthUser({
+        token: response.token,
+        username: response.username,
+        email: response.email,
+        userType: response.user_type,
+        organizationId: response.organization.id,
+        organizationName: response.organization.name,
+        isOrgOwner: response.is_org_owner,
+        plan: response.plan,
+      })
       router.push("/dashboard")
     } catch (err: any) {
       setError(err.message || "Login failed. Please try again.")

@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getAuthToken } from "@/lib/auth"
+import { getAuthToken, getAuthUser } from "@/lib/auth"
 import { listBots, listDataSources, createBot, deleteBot } from "@/lib/api"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, MessageSquare, Trash2, Zap } from "lucide-react"
@@ -41,6 +41,7 @@ export default function BotsPage() {
     max_tokens: 512,
     row_limit: 200,
   })
+  const [authUser, setAuthUserState] = useState<any>(null)
 
   useEffect(() => {
     const token = getAuthToken()
@@ -48,6 +49,8 @@ export default function BotsPage() {
       router.push("/login")
       return
     }
+    const user = getAuthUser()
+    setAuthUserState(user)
     loadData()
   }, [router])
 
@@ -65,32 +68,17 @@ export default function BotsPage() {
 
   const handleCreateBot = async (e: React.FormEvent) => {
     e.preventDefault()
-
     try {
-      const dataSourceId = Number.parseInt(formData.data_source)
-      if (Number.isNaN(dataSourceId)) {
-        alert("Please select a data source")
-        return
-      }
-
-      // Armamos el payload base
-      const payload: any = {
+      await createBot({
         name: formData.name,
         description: formData.description,
-        data_source: dataSourceId,
+        data_source: Number.parseInt(formData.data_source),
         openai_model: formData.openai_model,
+        system_prompt: formData.system_prompt,
         temperature: formData.temperature,
         max_tokens: formData.max_tokens,
         row_limit: formData.row_limit,
-      }
-
-      // Solo mandamos system_prompt si el usuario escribió algo
-      if (formData.system_prompt.trim().length > 0) {
-        payload.system_prompt = formData.system_prompt
-      }
-
-      await createBot(payload)
-
+      })
       setDialogOpen(false)
       setFormData({
         name: "",
@@ -102,11 +90,10 @@ export default function BotsPage() {
         max_tokens: 512,
         row_limit: 200,
       })
-
       await loadData()
     } catch (error: any) {
       console.error("Error creating bot:", error)
-      alert(error?.message ?? "Failed to create bot")
+      alert(error.message)
     }
   }
 
@@ -134,8 +121,14 @@ export default function BotsPage() {
           <div className="p-8 space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Bots</h1>
-                <p className="text-sm text-muted-foreground mt-1">Create and manage your intelligent bots</p>
+                <h1 className="text-3xl font-bold text-foreground">
+                  {authUser?.isOrgOwner ? "All Bots in Workspace" : "My Bots"}
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {authUser?.isOrgOwner
+                    ? "Manage all intelligent bots in your organization"
+                    : "Your personal intelligent bots"}
+                </p>
               </div>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>

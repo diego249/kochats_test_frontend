@@ -3,13 +3,14 @@
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { LogOut, LayoutDashboard, Database, Bot, ChevronRight, HelpCircle } from "lucide-react"
+import { LogOut, LayoutDashboard, Database, Bot, ChevronRight, HelpCircle, Users } from "lucide-react"
 import { logout } from "@/lib/api"
-import { clearAuthToken } from "@/lib/auth"
+import { clearAuthToken, clearAuthUser, getAuthUser } from "@/lib/auth"
 
 export function Sidebar() {
   const router = useRouter()
   const pathname = usePathname()
+  const authUser = getAuthUser()
 
   const handleLogout = async () => {
     try {
@@ -18,15 +19,22 @@ export function Sidebar() {
       console.error("Logout error:", error)
     } finally {
       clearAuthToken()
+      clearAuthUser()
       router.push("/login")
     }
   }
 
-  const menuItems = [
+  const baseMenuItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/datasources", label: "Data Sources", icon: Database },
     { href: "/bots", label: "Bots", icon: Bot },
   ]
+
+  // Si es owner, agregamos "Team"
+  const menuItems =
+    authUser?.isOrgOwner
+      ? [...baseMenuItems, { href: "/team", label: "Team", icon: Users }]
+      : baseMenuItems
 
   const helpItems = [{ href: "/help/security", label: "Security & Data Protection", icon: HelpCircle }]
 

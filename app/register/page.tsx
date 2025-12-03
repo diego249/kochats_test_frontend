@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { setAuthToken } from "@/lib/auth"
+import { setAuthToken, setAuthUser } from "@/lib/auth"
 import { register as apiRegister } from "@/lib/api"
 import { Lock, Mail, User } from "lucide-react"
 
@@ -29,6 +29,16 @@ export default function RegisterPage() {
     try {
       const response = await apiRegister(email, username, password)
       setAuthToken(response.token)
+      setAuthUser({
+        token: response.token,
+        username: response.username,
+        email: response.email,
+        userType: response.user_type,
+        organizationId: response.organization.id,
+        organizationName: response.organization.name,
+        isOrgOwner: response.is_org_owner,
+        plan: response.plan,
+      })
       router.push("/dashboard")
     } catch (err: any) {
       setError(err.message || "Registration failed. Please try again.")
