@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Sidebar } from "@/components/sidebar"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
@@ -17,7 +18,7 @@ import { getAuthToken } from "@/lib/auth"
 import { listDataSources, createDataSource, deleteDataSource, testDataSourceConnection } from "@/lib/api"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Loader, Database, Check, X } from "lucide-react"
+import { Plus, Trash2, Loader, Database, Check, X, Info } from "lucide-react"
 
 export default function DataSourcesPage() {
   const router = useRouter()
@@ -148,7 +149,15 @@ export default function DataSourcesPage() {
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Create Data Source</DialogTitle>
+                    <div className="flex items-center justify-between">
+                      <DialogTitle>Create Data Source</DialogTitle>
+                      <Link href="/help/security" target="_blank">
+                        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+                          <Info className="w-4 h-4" />
+                          <span className="text-xs">Security Info</span>
+                        </Button>
+                      </Link>
+                    </div>
                   </DialogHeader>
                   <form onSubmit={handleCreateDataSource} className="space-y-4">
                     <div>
