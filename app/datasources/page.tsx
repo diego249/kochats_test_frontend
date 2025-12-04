@@ -116,7 +116,10 @@ export default function DataSourcesPage() {
   }
 
   const handleDeleteDataSource = async () => {
+    // Defensa extra: si no es owner, no hace nada
+    if (!authUser?.isOrgOwner) return
     if (!deleteModal.dsId) return
+
     setIsDeleting(true)
     try {
       await deleteDataSource(deleteModal.dsId)
@@ -206,7 +209,9 @@ export default function DataSourcesPage() {
                         <Input
                           type="number"
                           value={formData.port}
-                          onChange={(e) => setFormData({ ...formData, port: Number.parseInt(e.target.value) })}
+                          onChange={(e) =>
+                            setFormData({ ...formData, port: Number.isNaN(Number(e.target.value)) ? 0 : Number(e.target.value) })
+                          }
                           required
                         />
                       </div>
@@ -326,7 +331,9 @@ export default function DataSourcesPage() {
                             }`}
                           >
                             <span
-                              className={`w-1.5 h-1.5 rounded-full ${ds.is_active ? "bg-green-600" : "bg-muted-foreground"}`}
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                ds.is_active ? "bg-green-600" : "bg-muted-foreground"
+                              }`}
                             />
                             {ds.is_active ? "Active" : "Inactive"}
                           </span>
@@ -341,14 +348,18 @@ export default function DataSourcesPage() {
                           >
                             {testing === ds.id ? <Loader className="w-4 h-4 animate-spin" /> : "Test"}
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setDeleteModal({ isOpen: true, dsId: ds.id, dsName: ds.name })}
-                            className="transition-all duration-200 hover:border-destructive/50 hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+
+                          {/* Botón de borrar solo para owners */}
+                          {authUser?.isOrgOwner && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setDeleteModal({ isOpen: true, dsId: ds.id, dsName: ds.name })}
+                              className="transition-all duration-200 hover:border-destructive/50 hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -366,15 +377,18 @@ export default function DataSourcesPage() {
         </div>
       </div>
 
-      <ConfirmDeleteModal
-        isOpen={deleteModal.isOpen}
-        title="Delete Data Source"
-        description="Are you sure you want to delete this data source? Any bots using this source may stop working."
-        itemName={deleteModal.dsName}
-        onConfirm={handleDeleteDataSource}
-        onCancel={() => setDeleteModal({ isOpen: false, dsId: null, dsName: "" })}
-        isLoading={isDeleting}
-      />
+      {/* Modal de borrado solo si es owner */}
+      {authUser?.isOrgOwner && (
+        <ConfirmDeleteModal
+          isOpen={deleteModal.isOpen}
+          title="Delete Data Source"
+          description="Are you sure you want to delete this data source? Any bots using this source may stop working."
+          itemName={deleteModal.dsName}
+          onConfirm={handleDeleteDataSource}
+          onCancel={() => setDeleteModal({ isOpen: false, dsId: null, dsName: "" })}
+          isLoading={isDeleting}
+        />
+      )}
     </div>
   )
 }
