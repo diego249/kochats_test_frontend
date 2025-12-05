@@ -233,8 +233,23 @@ export default function ChatPage() {
             </div>
           ) : (
             <>
-              {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              {/* Keyframes para el fade-in */}
+              <style>{`
+                @keyframes chatFadeIn {
+                  from { opacity: 0; transform: translateY(4px); }
+                  to { opacity: 1; transform: translateY(0); }
+                }
+              `}</style>
+
+              {messages.map((msg, idx) => (
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                  style={{
+                    animation: `chatFadeIn 0.25s ease-out ${idx * 40}ms forwards`,
+                    opacity: 0,
+                  }}
+                >
                   <div
                     className={`max-w-md rounded-lg p-4 transition-all duration-200 ${
                       msg.role === "user"

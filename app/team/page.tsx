@@ -194,11 +194,21 @@ export default function TeamPage() {
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    {users.map((u) => (
+                    {users.map((u, idx) => (
                       <div
                         key={u.id}
                         className="flex items-center justify-between border border-border/60 rounded-lg px-4 py-3 bg-background/60"
+                        style={{
+                          animation: `slideIn 0.3s ease-out ${idx * 50}ms forwards`,
+                          opacity: 0,
+                        }}
                       >
+                        <style>{`
+                          @keyframes slideIn {
+                            from { opacity: 0; transform: translateX(-8px); }
+                            to { opacity: 1; transform: translateX(0); }
+                          }
+                        `}</style>
                         <div className="space-y-1">
                           <p className="text-sm font-medium text-foreground">
                             {u.username}

@@ -50,34 +50,50 @@ export default function DashboardPage() {
   const activeDataSources = dataSources.filter((ds) => ds.is_active).length
   const totalMessages = conversations.reduce((sum, conv) => sum + (conv.message_count || 0), 0)
 
-  const StatCard = ({ icon: Icon, title, value, trend, description }: any) => (
-    <Card className="bg-gradient-to-br from-card/80 to-card/40 border-border/40 hover:border-secondary/40 transition-all duration-300 hover:shadow-lg hover:shadow-secondary/10">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-            {description && <p className="text-xs text-muted-foreground/60 mt-1">{description}</p>}
+  const StatCard = ({ icon: Icon, title, value, trend, description, href }: any) => {
+    const card = (
+      <Card
+        className={`bg-gradient-to-br from-card/80 to-card/40 border-border/40 hover:border-secondary/40 transition-all duration-300 hover:shadow-lg hover:shadow-secondary/10 ${
+          href ? "cursor-pointer" : ""
+        }`}
+      >
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+              {description && <p className="text-xs text-muted-foreground/60 mt-1">{description}</p>}
+            </div>
+            <div className="p-2 rounded-lg bg-secondary/10">
+              <Icon className="w-4 h-4 text-secondary" />
+            </div>
           </div>
-          <div className="p-2 rounded-lg bg-secondary/10">
-            <Icon className="w-4 h-4 text-secondary" />
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-end gap-2">
+            <div className="text-3xl font-bold text-foreground">
+              {loading ? <Skeleton className="h-8 w-16" /> : value}
+            </div>
+            {trend && (
+              <span className="text-xs text-green-500 flex items-center gap-1 pb-1">
+                <TrendingUp className="w-3 h-3" />
+                {trend}
+              </span>
+            )}
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-end gap-2">
-          <div className="text-3xl font-bold text-foreground">
-            {loading ? <Skeleton className="h-8 w-16" /> : value}
-          </div>
-          {trend && (
-            <span className="text-xs text-green-500 flex items-center gap-1 pb-1">
-              <TrendingUp className="w-3 h-3" />
-              {trend}
-            </span>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  )
+        </CardContent>
+      </Card>
+    )
+
+    if (href) {
+      return (
+        <Link href={href} className="block">
+          {card}
+        </Link>
+      )
+    }
+
+    return card
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -99,6 +115,7 @@ export default function DashboardPage() {
                 title="Active Bots"
                 value={bots.length}
                 description={`${avgConversationsPerBot} conversations per bot`}
+                href="/bots"
               />
               <StatCard
                 icon={Database}
@@ -106,6 +123,7 @@ export default function DashboardPage() {
                 value={dataSources.length}
                 description={`${activeDataSources} active`}
                 trend={`${Math.round((activeDataSources / (dataSources.length || 1)) * 100)}%`}
+                href="/datasources"
               />
               <StatCard
                 icon={MessageSquare}
@@ -148,41 +166,42 @@ export default function DashboardPage() {
                   </>
                 ) : bots.length > 0 ? (
                   bots.slice(0, 3).map((bot, idx) => (
-                    <Card
-                      key={bot.id}
-                      className="bg-gradient-to-br from-card/60 to-card/30 border-border/40 hover:border-secondary/50 hover:shadow-lg hover:shadow-secondary/10 transition-all duration-300 cursor-pointer group"
-                      style={{
-                        animation: `fadeIn 0.5s ease-out ${idx * 100}ms forwards`,
-                        opacity: 0,
-                      }}
-                    >
-                      <style>{`
-                        @keyframes fadeIn {
-                          from { opacity: 0; transform: translateY(8px); }
-                          to { opacity: 1; transform: translateY(0); }
-                        }
-                      `}</style>
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <CardTitle className="text-base text-foreground group-hover:text-secondary transition-colors duration-200">
-                              {bot.name}
-                            </CardTitle>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {conversations.filter((c) => c.bot_id === bot.id).length} conversations
-                            </p>
+                    <Link key={bot.id} href={`/bots/${bot.id}/chat`} className="block">
+                      <Card
+                        className="bg-gradient-to-br from-card/60 to-card/30 border-border/40 hover:border-secondary/50 hover:shadow-lg hover:shadow-secondary/10 transition-all duration-300 cursor-pointer group"
+                        style={{
+                          animation: `fadeIn 0.5s ease-out ${idx * 100}ms forwards`,
+                          opacity: 0,
+                        }}
+                      >
+                        <style>{`
+                          @keyframes fadeIn {
+                            from { opacity: 0; transform: translateY(8px); }
+                            to { opacity: 1; transform: translateY(0); }
+                          }
+                        `}</style>
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <CardTitle className="text-base text-foreground group-hover:text-secondary transition-colors duration-200">
+                                {bot.name}
+                              </CardTitle>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {conversations.filter((c) => c.bot_id === bot.id).length} conversations
+                              </p>
+                            </div>
+                            <div className="p-2 rounded-lg bg-secondary/10 group-hover:bg-secondary/20 transition-all duration-200">
+                              <Bot className="w-4 h-4 text-secondary" />
+                            </div>
                           </div>
-                          <div className="p-2 rounded-lg bg-secondary/10 group-hover:bg-secondary/20 transition-all duration-200">
-                            <Bot className="w-4 h-4 text-secondary" />
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {bot.description || "No description"}
-                        </p>
-                      </CardContent>
-                    </Card>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {bot.description || "No description"}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   ))
                 ) : (
                   <Card className="bg-card/50 border border-border/50 md:col-span-2 lg:col-span-3">
