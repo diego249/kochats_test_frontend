@@ -27,7 +27,6 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
   })
 
   if (response.status === 401) {
-    // Unauthorized - clear token and redirect
     if (typeof window !== "undefined") {
       localStorage.removeItem("authToken")
       localStorage.removeItem("authUser")
@@ -58,7 +57,6 @@ export async function login(username: string, password: string) {
     body: JSON.stringify({ username, password }),
   })
 
-  // Construimos y guardamos AuthUser en localStorage
   const authUser: AuthUser = {
     token: data.token,
     username: data.username,
@@ -73,7 +71,6 @@ export async function login(username: string, password: string) {
   setAuthToken(authUser.token)
   setAuthUser(authUser)
 
-  // Devolvemos la respuesta original por compatibilidad
   return data
 }
 
@@ -235,7 +232,6 @@ export type OrgUser = {
 }
 
 export function listOrgUsers() {
-  // Ajusta el path si en el backend lo montaste en /api/auth/org/users/
   return apiCall<OrgUser[]>("/api/auth/org/users/")
 }
 
@@ -246,8 +242,31 @@ export function createOrgUser(data: {
   first_name?: string
   last_name?: string
 }) {
-  return apiCall<OrgUser>("/api/auth/org/users/", {
+  // el backend devuelve datos básicos del usuario creado;
+  // para la lista usamos listOrgUsers() después
+  return apiCall("/api/auth/org/users/", {
     method: "POST",
     body: JSON.stringify(data),
+  })
+}
+
+export function updateOrgUser(
+  userId: number,
+  data: {
+    first_name?: string
+    last_name?: string
+    status?: string
+    password?: string
+  },
+) {
+  return apiCall<OrgUser>(`/api/auth/org/users/${userId}/`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteOrgUser(userId: number) {
+  return apiCall(`/api/auth/org/users/${userId}/`, {
+    method: "DELETE",
   })
 }
