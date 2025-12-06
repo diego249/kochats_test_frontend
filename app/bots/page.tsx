@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getAuthToken, getAuthUser } from "@/lib/auth"
 import { listBots, listDataSources, createBot, deleteBot } from "@/lib/api"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, MessageSquare, Trash2, Zap } from "lucide-react"
+import { Plus, MessageSquare, Trash2, Zap, ChevronDown } from "lucide-react"
 
 export default function BotsPage() {
   const router = useRouter()
@@ -35,13 +35,13 @@ export default function BotsPage() {
     name: "",
     description: "",
     data_source: "",
-    openai_model: "gpt-4o-mini",
     system_prompt: "",
     temperature: 0.0,
     max_tokens: 512,
     row_limit: 200,
   })
   const [authUser, setAuthUserState] = useState<any>(null)
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   useEffect(() => {
     const token = getAuthToken()
@@ -73,7 +73,7 @@ export default function BotsPage() {
         name: formData.name,
         description: formData.description,
         data_source: Number.parseInt(formData.data_source),
-        openai_model: formData.openai_model,
+        // openai_model: eliminado
         system_prompt: formData.system_prompt,
         temperature: formData.temperature,
         max_tokens: formData.max_tokens,
@@ -84,12 +84,12 @@ export default function BotsPage() {
         name: "",
         description: "",
         data_source: "",
-        openai_model: "gpt-4o-mini",
         system_prompt: "",
         temperature: 0.0,
         max_tokens: 512,
         row_limit: 200,
       })
+      setShowAdvanced(false)
       await loadData()
     } catch (error: any) {
       console.error("Error creating bot:", error)
@@ -178,51 +178,92 @@ export default function BotsPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Model</Label>
-                        <Input
-                          value={formData.openai_model}
-                          onChange={(e) => setFormData({ ...formData, openai_model: e.target.value })}
+
+                    {/* Advanced settings */}
+                    <div className="mt-4 border-t border-border/40 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowAdvanced((prev) => !prev)}
+                        className="w-full flex items-center justify-between text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                      >
+                        <span>Advanced settings</span>
+                        <ChevronDown
+                          className={
+                            "w-4 h-4 transition-transform duration-200 " +
+                            (showAdvanced ? "rotate-180" : "")
+                          }
                         />
-                      </div>
-                      <div>
-                        <Label>Temperature</Label>
-                        <Input
-                          type="number"
-                          step={0.1}
-                          value={formData.temperature}
-                          onChange={(e) => setFormData({ ...formData, temperature: Number.parseFloat(e.target.value) })}
-                        />
-                      </div>
+                      </button>
+
+                      {showAdvanced && (
+                        <div className="mt-4 space-y-4 rounded-lg bg-card/40 border border-border/40 p-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <Label>Temperature</Label>
+                              <Input
+                                type="number"
+                                step={0.1}
+                                value={formData.temperature}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    temperature: Number.isNaN(Number.parseFloat(e.target.value))
+                                      ? 0
+                                      : Number.parseFloat(e.target.value),
+                                  })
+                                }
+                              />
+                            </div>
+                            <div>
+                              <Label>Max Tokens</Label>
+                              <Input
+                                type="number"
+                                value={formData.max_tokens}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    max_tokens: Number.isNaN(Number.parseInt(e.target.value))
+                                      ? 0
+                                      : Number.parseInt(e.target.value),
+                                  })
+                                }
+                              />
+                            </div>
+                            <div>
+                              <Label>Row Limit</Label>
+                              <Input
+                                type="number"
+                                value={formData.row_limit}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    row_limit: Number.isNaN(Number.parseInt(e.target.value))
+                                      ? 0
+                                      : Number.parseInt(e.target.value),
+                                  })
+                                }
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label>System Prompt</Label>
+                            <Textarea
+                              value={formData.system_prompt}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  system_prompt: e.target.value,
+                                })
+                              }
+                              placeholder="System instructions for the bot..."
+                              rows={4}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Max Tokens</Label>
-                        <Input
-                          type="number"
-                          value={formData.max_tokens}
-                          onChange={(e) => setFormData({ ...formData, max_tokens: Number.parseInt(e.target.value) })}
-                        />
-                      </div>
-                      <div>
-                        <Label>Row Limit</Label>
-                        <Input
-                          type="number"
-                          value={formData.row_limit}
-                          onChange={(e) => setFormData({ ...formData, row_limit: Number.parseInt(e.target.value) })}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label>System Prompt</Label>
-                      <Textarea
-                        value={formData.system_prompt}
-                        onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
-                        placeholder="System instructions for the bot..."
-                        rows={4}
-                      />
-                    </div>
+
                     <Button type="submit" className="w-full">
                       Create Bot
                     </Button>
