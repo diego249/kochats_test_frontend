@@ -148,6 +148,45 @@ export default function ChatPage() {
     }
   }
 
+  // ===============================
+  // Helper para renderizar mensajes
+  // ===============================
+  const renderMessageContent = (content: string, role: "user" | "assistant" | "system") => {
+    const isTableLike = content.includes("|") && content.includes("\n")
+
+    // Respuestas del bot con “tabla” en texto (nuestro layout de autos_formatter)
+    if (role === "assistant" && isTableLike) {
+      const lines = content.split("\n").filter((l) => l.trim().length > 0)
+
+      const headerLine = lines[0] ?? ""
+      const separatorLine = lines[1] ?? ""
+      const rowLines = lines.slice(2)
+
+      return (
+        <div className="text-xs font-mono whitespace-pre-line">
+          {headerLine && <div className="font-semibold mb-1">{headerLine}</div>}
+          {separatorLine && (
+            <div className="text-muted-foreground mb-1">
+              {separatorLine}
+            </div>
+          )}
+          {rowLines.map((line, idx) => (
+            <div key={idx}>
+              {"• "}{line.replace(/^•\s*/, "")}
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    // Mensajes normales (user o assistant sin tabla)
+    return (
+      <p className="text-sm leading-relaxed whitespace-pre-line">
+        {content}
+      </p>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex h-screen bg-background">
@@ -257,7 +296,7 @@ export default function ChatPage() {
                         : "bg-card/70 border border-border/50 text-foreground hover:bg-card/90 hover:border-border"
                     }`}
                   >
-                    <p className="text-sm leading-relaxed">{msg.content}</p>
+                    {renderMessageContent(msg.content, msg.role)}
                     {msg.metadata && msg.metadata.sql && (
                       <details className="mt-3 pt-3 border-t border-border/50">
                         <summary className="text-xs cursor-pointer opacity-60 hover:opacity-100 transition-opacity duration-200">
@@ -284,7 +323,7 @@ export default function ChatPage() {
                     {msg.role === "assistant" ? (
                       <TypingIndicator />
                     ) : (
-                      <p className="text-sm leading-relaxed">{msg.content}</p>
+                      <p className="text-sm leading-relaxed whitespace-pre-line">{msg.content}</p>
                     )}
                   </div>
                 </div>
