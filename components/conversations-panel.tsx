@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
-import { Loader, Plus, Trash2 } from "lucide-react"
+import { Loader, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 import { listConversations, deleteConversation } from "@/lib/api"
 
 interface Conversation {
@@ -27,12 +27,19 @@ export function ConversationsPanel({
 }: ConversationsPanelProps) {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
-  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; convId: number | null; convTitle: string }>({
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean
+    convId: number | null
+    convTitle: string
+  }>({
     isOpen: false,
     convId: null,
     convTitle: "",
   })
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // 👉 estado para contraer / expandir lateralmente
+  const [collapsed, setCollapsed] = useState(false)
 
   useEffect(() => {
     loadConversations()
@@ -76,59 +83,103 @@ export function ConversationsPanel({
 
   return (
     <>
-      <div className="w-64 bg-card border-r border-border flex flex-col overflow-hidden">
+      <div
+        className={`bg-card border-r border-border flex flex-col overflow-hidden transition-[width] duration-300 ${
+          collapsed ? "w-10" : "w-64"
+        }`}
+      >
         {/* Header */}
-        <div className="p-4 border-b border-border/50">
-          <Button onClick={onNewConversation} className="w-full gap-2" size="sm">
-            <Plus className="w-4 h-4" />
-            New conversation
-          </Button>
-        </div>
-
-        {/* Conversations List */}
-        <div className="flex-1 overflow-auto p-2 space-y-1.5">
-          {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <Loader className="w-4 h-4 animate-spin text-muted-foreground" />
-            </div>
-          ) : conversations.length === 0 ? (
-            <div className="text-center text-xs text-muted-foreground py-8 px-2">No conversations yet</div>
-          ) : (
-            conversations.map((conversation) => (
-              <div
-                key={conversation.id}
-                onClick={() => onSelectConversation(conversation.id)}
-                className={`p-3 rounded-md cursor-pointer transition-all duration-300 ease-out group ${
-                  currentConversationId === conversation.id
-                    ? "bg-primary/15 border border-primary/30 shadow-md shadow-primary/10"
-                    : "hover:bg-muted/60 border border-transparent"
-                }`}
+        <div className="border-b border-border/50">
+          {collapsed ? (
+            // Versión colapsada: solo botón para expandir
+            <div className="p-2 flex items-center justify-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => setCollapsed(false)}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate leading-tight">
-                      {conversation.title || `Untitled conversation #${conversation.id}`}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">{formatTime(conversation.updated_at)}</p>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setDeleteModal({
-                        isOpen: true,
-                        convId: conversation.id,
-                        convTitle: conversation.title || `Conversation #${conversation.id}`,
-                      })
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0"
-                  >
-                    <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive transition-colors duration-200" />
-                  </button>
-                </div>
+                <ChevronRight className="w-4 h-4" />
+                <span className="sr-only">Expand conversations panel</span>
+              </Button>
+            </div>
+          ) : (
+            // Versión expandida: título + botón para colapsar + New conversation
+            <div className="p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Conversations
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setCollapsed(true)}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span className="sr-only">Collapse conversations panel</span>
+                </Button>
               </div>
-            ))
+
+              <Button onClick={onNewConversation} className="w-full gap-2" size="sm">
+                <Plus className="w-4 h-4" />
+                New conversation
+              </Button>
+            </div>
           )}
         </div>
+
+        {/* Lista de conversaciones: solo si está expandido */}
+        {!collapsed && (
+          <div className="flex-1 overflow-auto p-2 space-y-1.5">
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader className="w-4 h-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : conversations.length === 0 ? (
+              <div className="text-center text-xs text-muted-foreground py-8 px-2">
+                No conversations yet
+              </div>
+            ) : (
+              conversations.map((conversation) => (
+                <div
+                  key={conversation.id}
+                  onClick={() => onSelectConversation(conversation.id)}
+                  className={`p-3 rounded-md cursor-pointer transition-all duration-300 ease-out group ${
+                    currentConversationId === conversation.id
+                      ? "bg-primary/15 border border-primary/30 shadow-md shadow-primary/10"
+                      : "hover:bg-muted/60 border border-transparent"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate leading-tight">
+                        {conversation.title || `Untitled conversation #${conversation.id}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatTime(conversation.updated_at)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setDeleteModal({
+                          isOpen: true,
+                          convId: conversation.id,
+                          convTitle:
+                            conversation.title || `Conversation #${conversation.id}`,
+                        })
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive transition-colors duration-200" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       <ConfirmDeleteModal
