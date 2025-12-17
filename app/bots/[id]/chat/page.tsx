@@ -165,14 +165,11 @@ export default function ChatPage() {
       return (
         <div className="text-xs font-mono whitespace-pre-line">
           {headerLine && <div className="font-semibold mb-1">{headerLine}</div>}
-          {separatorLine && (
-            <div className="text-muted-foreground mb-1">
-              {separatorLine}
-            </div>
-          )}
+          {separatorLine && <div className="text-muted-foreground mb-1">{separatorLine}</div>}
           {rowLines.map((line, idx) => (
             <div key={idx}>
-              {"• "}{line.replace(/^•\s*/, "")}
+              {"• "}
+              {line.replace(/^•\s*/, "")}
             </div>
           ))}
         </div>
@@ -180,11 +177,23 @@ export default function ChatPage() {
     }
 
     // Mensajes normales (user o assistant sin tabla)
-    return (
-      <p className="text-sm leading-relaxed whitespace-pre-line">
-        {content}
-      </p>
-    )
+    return <p className="text-sm leading-relaxed whitespace-pre-line">{content}</p>
+  }
+
+  // ===============================
+  // Helper: formatear fecha/hora
+  // ===============================
+  const formatMessageTime = (isoString?: string) => {
+    if (!isoString) return ""
+    const d = new Date(isoString)
+    if (Number.isNaN(d.getTime())) return isoString // fallback si viene raro
+    return d.toLocaleString(undefined, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
   }
 
   if (loading) {
@@ -289,42 +298,56 @@ export default function ChatPage() {
                     opacity: 0,
                   }}
                 >
-                  <div
-                    className={`max-w-md rounded-lg p-4 transition-all duration-200 ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/30 hover:shadow-lg hover:shadow-primary/40"
-                        : "bg-card/70 border border-border/50 text-foreground hover:bg-card/90 hover:border-border"
-                    }`}
-                  >
-                    {renderMessageContent(msg.content, msg.role)}
-                    {msg.metadata && msg.metadata.sql && (
-                      <details className="mt-3 pt-3 border-t border-border/50">
-                        <summary className="text-xs cursor-pointer opacity-60 hover:opacity-100 transition-opacity duration-200">
-                          Debug Info
-                        </summary>
-                        <pre className="mt-2 text-xs bg-background/50 p-2 rounded overflow-auto max-h-40">
-                          {JSON.stringify(msg.metadata, null, 2)}
-                        </pre>
-                      </details>
-                    )}
+                  <div className="max-w-md">
+                    <div
+                      className={`rounded-lg p-4 transition-all duration-200 ${
+                        msg.role === "user"
+                          ? "bg-primary text-primary-foreground shadow-md shadow-primary/30 hover:shadow-lg hover:shadow-primary/40"
+                          : "bg-card/70 border border-border/50 text-foreground hover:bg-card/90 hover:border-border"
+                      }`}
+                    >
+                      {renderMessageContent(msg.content, msg.role)}
+                      {msg.metadata && msg.metadata.sql && (
+                        <details className="mt-3 pt-3 border-t border-border/50">
+                          <summary className="text-xs cursor-pointer opacity-60 hover:opacity-100 transition-opacity duration-200">
+                            Debug Info
+                          </summary>
+                          <pre className="mt-2 text-xs bg-background/50 p-2 rounded overflow-auto max-h-40">
+                            {JSON.stringify(msg.metadata, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+
+                    {/* Timestamp debajo del bubble */}
+                    <div className={`mt-1 text-[11px] text-muted-foreground ${msg.role === "user" ? "text-right" : "text-left"}`}>
+                      {formatMessageTime(msg.created_at)}
+                    </div>
                   </div>
                 </div>
               ))}
 
               {pendingMessages.map((msg) => (
                 <div key={msg.tempId} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-md rounded-lg p-4 ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
-                        : "bg-card/70 border border-border/50 text-foreground"
-                    }`}
-                  >
-                    {msg.role === "assistant" ? (
-                      <TypingIndicator />
-                    ) : (
-                      <p className="text-sm leading-relaxed whitespace-pre-line">{msg.content}</p>
-                    )}
+                  <div className="max-w-md">
+                    <div
+                      className={`rounded-lg p-4 ${
+                        msg.role === "user"
+                          ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+                          : "bg-card/70 border border-border/50 text-foreground"
+                      }`}
+                    >
+                      {msg.role === "assistant" ? (
+                        <TypingIndicator />
+                      ) : (
+                        <p className="text-sm leading-relaxed whitespace-pre-line">{msg.content}</p>
+                      )}
+                    </div>
+
+                    {/* En pending no tenemos created_at real, opcional: mostrar "Sending..." */}
+                    <div className={`mt-1 text-[11px] text-muted-foreground ${msg.role === "user" ? "text-right" : "text-left"}`}>
+                      {msg.role === "user" ? "Sending..." : ""}
+                    </div>
                   </div>
                 </div>
               ))}
