@@ -1,11 +1,12 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { LogOut, ChevronDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { logout } from "@/lib/api"
 import { clearAuthToken, clearAuthUser, getAuthUser } from "@/lib/auth"
-import { useState } from "react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function DashboardHeader({ username }: { username?: string }) {
   const router = useRouter()
@@ -33,6 +34,7 @@ export function DashboardHeader({ username }: { username?: string }) {
       </div>
 
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         <div className="relative">
           <Button
             variant="outline"
