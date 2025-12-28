@@ -7,15 +7,15 @@ export function Footer() {
 
   const footerLinks = {
     Servicios: [
-      { label: "Agentes Inteligentes", href: "#servicios" },
-      { label: "Forecast", href: "#servicios" },
-      { label: "Detección de Outliers", href: "#servicios" },
-      { label: "Clusterización", href: "#servicios" },
+      { label: "Agentes Inteligentes", href: "#agentes" },
+      { label: "Forecast", href: "#agentes" },
+      { label: "Detección de Outliers", href: "#agentes" },
+      { label: "Clusterización", href: "#agentes" },
     ],
     Empresa: [
       { label: "Proceso", href: "#proceso" },
       { label: "Tecnología", href: "#tecnologia" },
-      { label: "Contacto", href: "mailto:contacto@kodata.ai" },
+      { label: "Contacto", href: "/login" },
     ],
   }
 
@@ -37,10 +37,7 @@ export function Footer() {
               <p className="text-muted-foreground max-w-md leading-relaxed mb-4">
                 Desarrollo de software con inteligencia artificial para empresas que quieren ser Data Driven Companies.
               </p>
-              <a
-                href="mailto:contacto@kodata.ai"
-                className="text-primary hover:text-primary/80 transition-colors font-medium"
-              >
+              <a href="/login" className="text-primary hover:text-primary/80 transition-colors font-medium">
                 contacto@kodata.ai
               </a>
             </motion.div>

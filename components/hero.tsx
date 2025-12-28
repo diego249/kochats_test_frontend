@@ -81,13 +81,13 @@ export function Hero() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground group">
-              <a href="mailto:contacto@kodata.ai" className="flex items-center gap-2">
+              <a href="/login" className="flex items-center gap-2">
                 Comenzar ahora
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </a>
             </Button>
             <Button size="lg" variant="outline" asChild className="border-border hover:bg-muted bg-transparent">
-              <a href="#servicios">Ver servicios</a>
+              <a href="#agentes">Ver servicios</a>
             </Button>
           </motion.div>
 

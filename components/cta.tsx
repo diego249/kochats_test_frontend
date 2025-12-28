@@ -36,9 +36,9 @@ export function CTA() {
               asChild
               className="bg-primary hover:bg-primary/90 text-primary-foreground group text-lg px-8 py-6"
             >
-              <a href="mailto:contacto@kodata.ai" className="flex items-center gap-2">
+              <a href="/login" className="flex items-center gap-2">
                 <Mail size={20} />
-                contacto@kodata.ai
+                Ir al login
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </a>
             </Button>

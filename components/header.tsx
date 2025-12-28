@@ -62,7 +62,7 @@ export function Header() {
           {/* CTA Button */}
           <div className="hidden md:block">
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <a href="mailto:contacto@kodata.ai">Contactar</a>
+              <Link href="/login">Login</Link>
             </Button>
           </div>
 
@@ -99,7 +99,7 @@ export function Header() {
                 </Link>
               ))}
               <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground w-full">
-                <a href="mailto:contacto@kodata.ai">Contactar</a>
+                <Link href="/login">Login</Link>
               </Button>
             </nav>
           </motion.div>

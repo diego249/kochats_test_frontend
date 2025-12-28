@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { setAuthToken, setAuthUser } from "@/lib/auth"
 import { login as apiLogin } from "@/lib/api"
-import { Lock, Mail, Eye, EyeOff } from "lucide-react"
+import { Lock, Mail, Eye, EyeOff, ChevronRight } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -48,94 +49,130 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-8 space-y-6 shadow-lg shadow-primary/5">
-          {/* Logo */}
-          <div className="text-center space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Kochats
-            </h1>
-            <p className="text-sm text-muted-foreground">Welcome back to your AI assistant platform</p>
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <header className="flex items-center justify-between px-6 py-6 text-sm font-semibold">
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold tracking-tight">Kochats</span>
+          <span className="text-muted-foreground">Platform</span>
+        </div>
+        <ThemeToggle />
+      </header>
+
+      <main className="flex-1 flex flex-col items-center justify-center px-4 pb-12">
+        <div className="w-full max-w-md space-y-8 text-center">
+          <div className="space-y-2">
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Bienvenido de nuevo</h1>
+            <p className="text-sm text-muted-foreground">Accede a tu cuenta para continuar</p>
           </div>
 
           {error && (
-            <Alert variant="destructive" className="border-destructive/50 bg-destructive/5">
+            <Alert variant="destructive" className="border-destructive/50 bg-destructive/5 text-left">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-medium">
-                Username or Email
+            <div className="space-y-2 text-left">
+              <Label htmlFor="username" className="text-xs font-medium text-muted-foreground">
+                Usuario o correo
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Mail className="absolute left-4 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
                 <Input
                   id="username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username or email"
+                  placeholder="nombre@empresa.com"
                   required
                   disabled={loading}
-                  className="pl-10 transition-all duration-200 focus:ring-primary/20"
+                  className="h-12 rounded-full pl-11 bg-card border-border focus-visible:ring-primary/30"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
-                Password
+            <div className="space-y-2 text-left">
+              <Label htmlFor="password" className="text-xs font-medium text-muted-foreground">
+                Contraseña
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Lock className="absolute left-4 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder="********"
                   required
                   disabled={loading}
-                  className="pl-10 pr-10 transition-all duration-200 focus:ring-primary/20"
+                  className="h-12 rounded-full pl-11 pr-12 bg-card border-border focus-visible:ring-primary/30"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-2.5 inline-flex items-center justify-center rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3 top-2 inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full transition-all duration-200 hover:shadow-lg hover:shadow-primary/20"
+              className="w-full h-12 rounded-full text-base font-semibold shadow-sm hover:shadow-primary/15 transition-all duration-200"
               disabled={loading}
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? "Ingresando..." : "Continuar"}
             </Button>
           </form>
 
-          <div className="pt-2 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/register"
-              className="text-primary font-medium hover:text-primary/80 transition-colors duration-200"
-            >
-              Create one
+          <div className="text-sm text-muted-foreground">
+            ¿No tienes una cuenta?{" "}
+            <Link href="/register" className="text-primary font-medium hover:text-primary/80 transition-colors">
+              Regístrate
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-3 text-muted-foreground">
+            <span className="flex-1 h-px bg-border" />
+            <span className="text-xs uppercase tracking-[0.2em]">o</span>
+            <span className="flex-1 h-px bg-border" />
+          </div>
+
+          <div className="space-y-3">
+            {[
+              { label: "Continuar con Google", color: "text-red-500", symbol: "G" },
+              { label: "Continuar con Apple", color: "text-foreground", symbol: "A" },
+              { label: "Continuar con Microsoft", color: "text-sky-600", symbol: "M" },
+            ].map((option) => (
+              <Button
+                key={option.label}
+                type="button"
+                variant="outline"
+                disabled
+                className="w-full h-12 rounded-full justify-between border-border text-left text-sm font-medium hover:bg-muted/60 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <span className="flex items-center gap-3">
+                  <span className={`w-6 text-center ${option.color}`}>{option.symbol}</span>
+                  <span>{option.label}</span>
+                </span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <Link href="#" className="hover:text-foreground">
+              Términos de uso
+            </Link>
+            <span className="h-1 w-1 rounded-full bg-border" aria-hidden />
+            <Link href="#" className="hover:text-foreground">
+              Política de privacidad
             </Link>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
