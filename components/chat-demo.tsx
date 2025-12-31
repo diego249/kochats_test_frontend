@@ -3,24 +3,56 @@
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Bot, User } from "lucide-react"
-
-const chatMessages = [
-  {
-    type: "user",
-    message: "¿Cuál es el estado del inventario de productos electrónicos?",
-  },
-  {
-    type: "bot",
-    message:
-      "Actualmente tenemos 1,247 unidades en stock. Los productos más vendidos son laptops (342 unidades) y smartphones (589 unidades). Te recomiendo reabastecer tablets, quedan solo 45 unidades.",
-  },
-  {
-    type: "user",
-    message: "Genera un reporte de ventas del último trimestre",
-  },
-]
+import { useLanguage } from "@/components/language-provider"
 
 export function ChatDemo() {
+  const { language } = useLanguage()
+
+  const copy = {
+    es: {
+      title: "Interacción",
+      accent: "en Tiempo Real",
+      subtitle: "Así es como tus agentes inteligentes interactúan con tu equipo",
+      messages: [
+        {
+          type: "user",
+          message: "¿Cuál es el estado del inventario de productos electrónicos?",
+        },
+        {
+          type: "bot",
+          message:
+            "Actualmente tenemos 1,247 unidades en stock. Los productos más vendidos son laptops (342 unidades) y smartphones (589 unidades). Te recomiendo reabastecer tablets, quedan solo 45 unidades.",
+        },
+        {
+          type: "user",
+          message: "Genera un reporte de ventas del último trimestre",
+        },
+      ],
+    },
+    en: {
+      title: "Real-time",
+      accent: "Interaction",
+      subtitle: "This is how your intelligent agents interact with your team",
+      messages: [
+        {
+          type: "user",
+          message: "What is the status of the electronics inventory?",
+        },
+        {
+          type: "bot",
+          message:
+            "We currently have 1,247 units in stock. Best sellers are laptops (342 units) and smartphones (589 units). I recommend restocking tablets; only 45 units remain.",
+        },
+        {
+          type: "user",
+          message: "Generate a sales report for the last quarter",
+        },
+      ],
+    },
+  } as const
+
+  const t = copy[language]
+
   return (
     <section className="py-20 md:py-32 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
@@ -33,20 +65,18 @@ export function ChatDemo() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-balance">
-            Interacción{" "}
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              en Tiempo Real
-            </span>
+            {t.title}{" "}
+            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{t.accent}</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance leading-relaxed">
-            Así es como tus agentes inteligentes interactúan con tu equipo
+            {t.subtitle}
           </p>
         </motion.div>
 
         <div className="max-w-3xl mx-auto">
           <Card className="p-6 md:p-8 bg-card border-border">
             <div className="space-y-6">
-              {chatMessages.map((msg, index) => (
+              {t.messages.map((msg, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: msg.type === "user" ? 20 : -20 }}
@@ -85,7 +115,7 @@ export function ChatDemo() {
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.5, delay: chatMessages.length * 0.3 }}
+                transition={{ duration: 0.5, delay: t.messages.length * 0.3 }}
                 className="flex gap-3"
               >
                 <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-400 flex items-center justify-center">

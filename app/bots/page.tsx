@@ -18,9 +18,11 @@ import { getAuthToken, getAuthUser } from "@/lib/auth"
 import { listBots, listDataSources, createBot, deleteBot } from "@/lib/api"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, MessageSquare, Trash2, Zap, ChevronDown } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 
 export default function BotsPage() {
   const router = useRouter()
+  const { language } = useLanguage()
   const [bots, setBots] = useState<any[]>([])
   const [dataSources, setDataSources] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,6 +44,59 @@ export default function BotsPage() {
   })
   const [authUser, setAuthUserState] = useState<any>(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
+
+  const copy = {
+    es: {
+      titleOwner: "Todos los bots del workspace",
+      titleMember: "Mis bots",
+      subtitleOwner: "Gestiona todos los bots inteligentes de tu organización",
+      subtitleMember: "Tus bots inteligentes personales",
+      newBot: "Nuevo bot",
+      dialogTitle: "Crear nuevo bot",
+      botName: "Nombre del bot",
+      description: "Descripción",
+      dataSource: "Fuente de datos",
+      dataSourcePlaceholder: "Selecciona una fuente de datos",
+      advanced: "Configuraciones avanzadas",
+      temperature: "Temperature",
+      maxTokens: "Max Tokens",
+      rowLimit: "Límite de filas",
+      systemPrompt: "System Prompt",
+      createBot: "Crear bot",
+      statusActive: "Activo",
+      statusInactive: "Inactivo",
+      chat: "Chat",
+      empty: "Aún no hay bots. Crea tu primer bot para empezar.",
+      deleteTitle: "Eliminar bot",
+      deleteDescription: "¿Seguro que quieres eliminar este bot? Se perderán todas las conversaciones asociadas.",
+    },
+    en: {
+      titleOwner: "All Bots in Workspace",
+      titleMember: "My Bots",
+      subtitleOwner: "Manage all intelligent bots in your organization",
+      subtitleMember: "Your personal intelligent bots",
+      newBot: "New Bot",
+      dialogTitle: "Create New Bot",
+      botName: "Bot Name",
+      description: "Description",
+      dataSource: "Data Source",
+      dataSourcePlaceholder: "Select a data source",
+      advanced: "Advanced settings",
+      temperature: "Temperature",
+      maxTokens: "Max Tokens",
+      rowLimit: "Row Limit",
+      systemPrompt: "System Prompt",
+      createBot: "Create Bot",
+      statusActive: "Active",
+      statusInactive: "Inactive",
+      chat: "Chat",
+      empty: "No bots yet. Create your first bot to get started.",
+      deleteTitle: "Delete Bot",
+      deleteDescription: "Are you sure you want to delete this bot? All associated conversations will be lost.",
+    },
+  } as const
+
+  const t = copy[language]
 
   useEffect(() => {
     const token = getAuthToken()
@@ -122,28 +177,26 @@ export default function BotsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-foreground">
-                  {authUser?.isOrgOwner ? "All Bots in Workspace" : "My Bots"}
+                  {authUser?.isOrgOwner ? t.titleOwner : t.titleMember}
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {authUser?.isOrgOwner
-                    ? "Manage all intelligent bots in your organization"
-                    : "Your personal intelligent bots"}
+                  {authUser?.isOrgOwner ? t.subtitleOwner : t.subtitleMember}
                 </p>
               </div>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/20">
                     <Plus className="w-4 h-4" />
-                    New Bot
+                    {t.newBot}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Create New Bot</DialogTitle>
+                    <DialogTitle>{t.dialogTitle}</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleCreateBot} className="space-y-4">
                     <div>
-                      <Label>Bot Name</Label>
+                      <Label>{t.botName}</Label>
                       <Input
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -152,7 +205,7 @@ export default function BotsPage() {
                       />
                     </div>
                     <div>
-                      <Label>Description</Label>
+                      <Label>{t.description}</Label>
                       <Textarea
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -161,13 +214,13 @@ export default function BotsPage() {
                       />
                     </div>
                     <div>
-                      <Label>Data Source</Label>
+                      <Label>{t.dataSource}</Label>
                       <Select
                         value={formData.data_source}
                         onValueChange={(value) => setFormData({ ...formData, data_source: value })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a data source" />
+                          <SelectValue placeholder={t.dataSourcePlaceholder} />
                         </SelectTrigger>
                         <SelectContent>
                           {dataSources.map((ds) => (
@@ -186,7 +239,7 @@ export default function BotsPage() {
                         onClick={() => setShowAdvanced((prev) => !prev)}
                         className="w-full flex items-center justify-between text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
                       >
-                        <span>Advanced settings</span>
+                        <span>{t.advanced}</span>
                         <ChevronDown
                           className={
                             "w-4 h-4 transition-transform duration-200 " +
@@ -199,7 +252,7 @@ export default function BotsPage() {
                         <div className="mt-4 space-y-4 rounded-lg bg-card/40 border border-border/40 p-4">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                              <Label>Temperature</Label>
+                              <Label>{t.temperature}</Label>
                               <Input
                                 type="number"
                                 step={0.1}
@@ -215,7 +268,7 @@ export default function BotsPage() {
                               />
                             </div>
                             <div>
-                              <Label>Max Tokens</Label>
+                              <Label>{t.maxTokens}</Label>
                               <Input
                                 type="number"
                                 value={formData.max_tokens}
@@ -230,7 +283,7 @@ export default function BotsPage() {
                               />
                             </div>
                             <div>
-                              <Label>Row Limit</Label>
+                              <Label>{t.rowLimit}</Label>
                               <Input
                                 type="number"
                                 value={formData.row_limit}
@@ -247,7 +300,7 @@ export default function BotsPage() {
                           </div>
 
                           <div>
-                            <Label>System Prompt</Label>
+                            <Label>{t.systemPrompt}</Label>
                             <Textarea
                               value={formData.system_prompt}
                               onChange={(e) =>
@@ -265,7 +318,7 @@ export default function BotsPage() {
                     </div>
 
                     <Button type="submit" className="w-full">
-                      Create Bot
+                      {t.createBot}
                     </Button>
                   </form>
                 </DialogContent>
@@ -298,7 +351,7 @@ export default function BotsPage() {
                       </div>
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 bg-secondary/10 text-secondary">
                         <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
-                        {bot.is_active ? "Active" : "Inactive"}
+                        {bot.is_active ? t.statusActive : t.statusInactive}
                       </span>
                     </div>
                   </CardHeader>
@@ -311,7 +364,7 @@ export default function BotsPage() {
                           className="w-full gap-2 transition-all duration-200 hover:shadow-md hover:shadow-primary/20"
                         >
                           <MessageSquare className="w-4 h-4" />
-                          Chat
+                          {t.chat}
                         </Button>
                       </Link>
                       <Button
@@ -332,7 +385,7 @@ export default function BotsPage() {
               <Card className="bg-card/40 border-border/40">
                 <CardContent className="pt-12 pb-12 text-center">
                   <Zap className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-muted-foreground mb-4">No bots yet. Create your first bot to get started.</p>
+                  <p className="text-muted-foreground mb-4">{t.empty}</p>
                 </CardContent>
               </Card>
             )}
@@ -340,15 +393,15 @@ export default function BotsPage() {
         </div>
       </div>
 
-      <ConfirmDeleteModal
-        isOpen={deleteModal.isOpen}
-        title="Delete Bot"
-        description="Are you sure you want to delete this bot? All associated conversations will be lost."
-        itemName={deleteModal.botName}
-        onConfirm={handleDeleteBot}
-        onCancel={() => setDeleteModal({ isOpen: false, botId: null, botName: "" })}
-        isLoading={isDeleting}
-      />
+    <ConfirmDeleteModal
+      isOpen={deleteModal.isOpen}
+      title={t.deleteTitle}
+      description={t.deleteDescription}
+      itemName={deleteModal.botName}
+      onConfirm={handleDeleteBot}
+      onCancel={() => setDeleteModal({ isOpen: false, botId: null, botName: "" })}
+      isLoading={isDeleting}
+    />
     </div>
   )
 }

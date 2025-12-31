@@ -1,23 +1,58 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useLanguage } from "@/components/language-provider"
 
 export function Footer() {
+  const { language } = useLanguage()
   const currentYear = new Date().getFullYear()
 
-  const footerLinks = {
-    Servicios: [
-      { label: "Agentes Inteligentes", href: "#servicios" },
-      { label: "Forecast", href: "#servicios" },
-      { label: "Detección de Outliers", href: "#servicios" },
-      { label: "Clusterización", href: "#servicios" },
-    ],
-    Empresa: [
-      { label: "Proceso", href: "#proceso" },
-      { label: "Tecnología", href: "#tecnologia" },
-      { label: "Contacto", href: "mailto:contacto@kodata.ai" },
-    ],
-  }
+  const footerLinks =
+    language === "es"
+      ? {
+          Servicios: [
+            { label: "Agentes Inteligentes", href: "#agentes" },
+            { label: "Forecast", href: "#agentes" },
+            { label: "Detección de Outliers", href: "#agentes" },
+            { label: "Clusterización", href: "#agentes" },
+          ],
+          Empresa: [
+            { label: "Proceso", href: "#proceso" },
+            { label: "Tecnología", href: "#tecnologia" },
+            { label: "Contacto", href: "/login" },
+          ],
+        }
+      : {
+          Services: [
+            { label: "Intelligent Agents", href: "#agentes" },
+            { label: "Forecast", href: "#agentes" },
+            { label: "Outlier Detection", href: "#agentes" },
+            { label: "Clustering", href: "#agentes" },
+          ],
+          Company: [
+            { label: "Process", href: "#proceso" },
+            { label: "Technology", href: "#tecnologia" },
+            { label: "Contact", href: "/login" },
+          ],
+        }
+
+  const copy = {
+    es: {
+      description:
+        "Desarrollo de software con inteligencia artificial para empresas que quieren ser Data Driven Companies.",
+      privacy: "Privacidad",
+      terms: "Términos",
+      rights: "Todos los derechos reservados.",
+    },
+    en: {
+      description: "AI-powered software development for companies that want to become Data Driven.",
+      privacy: "Privacy",
+      terms: "Terms",
+      rights: "All rights reserved.",
+    },
+  } as const
+
+  const t = copy[language]
 
   return (
     <footer className="border-t border-border bg-card/50">
@@ -35,12 +70,9 @@ export function Footer() {
                 Kodata
               </h3>
               <p className="text-muted-foreground max-w-md leading-relaxed mb-4">
-                Desarrollo de software con inteligencia artificial para empresas que quieren ser Data Driven Companies.
+                {t.description}
               </p>
-              <a
-                href="mailto:contacto@kodata.ai"
-                className="text-primary hover:text-primary/80 transition-colors font-medium"
-              >
+              <a href="/login" className="text-primary hover:text-primary/80 transition-colors font-medium">
                 contacto@kodata.ai
               </a>
             </motion.div>
@@ -80,13 +112,13 @@ export function Footer() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4"
         >
-          <p className="text-sm text-muted-foreground">© {currentYear} Kodata. Todos los derechos reservados.</p>
+          <p className="text-sm text-muted-foreground">© {currentYear} Kodata. {t.rights}</p>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <a href="#" className="hover:text-foreground transition-colors">
-              Privacidad
+              {t.privacy}
             </a>
             <a href="#" className="hover:text-foreground transition-colors">
-              Términos
+              {t.terms}
             </a>
           </div>
         </motion.div>

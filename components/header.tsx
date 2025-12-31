@@ -5,10 +5,37 @@ import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
+import { useLanguage } from "@/components/language-provider"
+import { LanguageToggle } from "@/components/language-toggle"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function Header() {
+  const { language } = useLanguage()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const copy = {
+    es: {
+      navItems: [
+        { label: "Inicio", href: "/" },
+        { label: "Agentes IA", href: "#agentes" },
+        { label: "Proceso", href: "#proceso" },
+        { label: "Tecnología", href: "#tecnologia" },
+      ],
+      cta: "Login",
+    },
+    en: {
+      navItems: [
+        { label: "Home", href: "/" },
+        { label: "AI Agents", href: "#agentes" },
+        { label: "Process", href: "#proceso" },
+        { label: "Technology", href: "#tecnologia" },
+      ],
+      cta: "Login",
+    },
+  } as const
+
+  const t = copy[language]
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,13 +44,6 @@ export function Header() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-
-  const navItems = [
-    { label: "Inicio", href: "/" },
-    { label: "Agentes IA", href: "#agentes" },
-    { label: "Proceso", href: "#proceso" },
-    { label: "Tecnología", href: "#tecnologia" },
-  ]
 
   return (
     <motion.header
@@ -48,7 +68,7 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => (
+            {t.navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -60,9 +80,11 @@ export function Header() {
           </nav>
 
           {/* CTA Button */}
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-2">
+            <LanguageToggle />
+            <ThemeToggle />
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <a href="mailto:contacto@kodata.ai">Contactar</a>
+              <Link href="/login">{t.cta}</Link>
             </Button>
           </div>
 
@@ -88,7 +110,7 @@ export function Header() {
             className="md:hidden bg-card border-t border-border"
           >
             <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
-              {navItems.map((item) => (
+              {t.navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -98,8 +120,12 @@ export function Header() {
                   {item.label}
                 </Link>
               ))}
+              <div className="flex items-center gap-2">
+                <LanguageToggle />
+                <ThemeToggle />
+              </div>
               <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground w-full">
-                <a href="mailto:contacto@kodata.ai">Contactar</a>
+                <Link href="/login">{t.cta}</Link>
               </Button>
             </nav>
           </motion.div>

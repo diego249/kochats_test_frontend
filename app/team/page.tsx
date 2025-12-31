@@ -22,10 +22,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
 import { Plus, Users, Eye, EyeOff } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 
 export default function TeamPage() {
   const router = useRouter()
   const authUser = getAuthUser()
+  const { language } = useLanguage()
 
   const [users, setUsers] = useState<OrgUser[]>([])
   const [loading, setLoading] = useState(true)
@@ -66,6 +68,81 @@ export default function TeamPage() {
     username: "",
   })
   const [deleteLoading, setDeleteLoading] = useState(false)
+
+  const copy = {
+    es: {
+      title: "Equipo",
+      subtitle: "Gestiona los usuarios de tu espacio de trabajo",
+      addUser: "Agregar usuario",
+      addUserDialog: "Agregar usuario al workspace",
+      email: "Correo electrónico",
+      username: "Usuario",
+      tempPassword: "Contraseña temporal",
+      firstName: "Nombre",
+      lastName: "Apellido",
+      creating: "Creando...",
+      createUser: "Crear usuario",
+      membersTitle: "Miembros del workspace",
+      loading: "Cargando usuarios...",
+      empty: "Eres el único miembro en este workspace. Usa el botón superior para agregar más usuarios.",
+      owner: "Owner",
+      member: "Member",
+      updating: "Actualizando...",
+      deactivate: "Desactivar",
+      activate: "Activar",
+      resetPassword: "Restablecer contraseña",
+      delete: "Eliminar",
+      resetTitle: "Restablecer contraseña",
+      resetCopy: "Define una nueva contraseña para",
+      newPassword: "Nueva contraseña",
+      confirmPassword: "Confirmar contraseña",
+      saving: "Guardando...",
+      savePassword: "Guardar contraseña",
+      hidePassword: "Ocultar contraseña",
+      showPassword: "Mostrar contraseña",
+      removeTitle: "Eliminar usuario",
+      removeDescription:
+        "¿Seguro que quieres eliminar a este usuario del workspace? Ya no podrá iniciar sesión.",
+      addUserCopy: "Agregar usuario",
+    },
+    en: {
+      title: "Team",
+      subtitle: "Manage the users in your workspace",
+      addUser: "Add user",
+      addUserDialog: "Add user to workspace",
+      email: "Email",
+      username: "Username",
+      tempPassword: "Temporary password",
+      firstName: "First name",
+      lastName: "Last name",
+      creating: "Creating...",
+      createUser: "Create user",
+      membersTitle: "Workspace members",
+      loading: "Loading users...",
+      empty: "You are the only member in this workspace. Use the button above to add more users.",
+      owner: "Owner",
+      member: "Member",
+      updating: "Updating...",
+      deactivate: "Deactivate",
+      activate: "Activate",
+      resetPassword: "Reset password",
+      delete: "Delete",
+      resetTitle: "Reset password",
+      resetCopy: "Set a new password for",
+      newPassword: "New password",
+      confirmPassword: "Confirm password",
+      saving: "Saving...",
+      savePassword: "Save password",
+      hidePassword: "Hide password",
+      showPassword: "Show password",
+      removeTitle: "Remove user",
+      removeDescription:
+        "Are you sure you want to remove this user from the workspace? They won't be able to sign in anymore.",
+      addUserCopy: "Add user",
+    },
+  } as const
+
+  const t = copy[language]
 
   useEffect(() => {
     if (!authUser?.token) {
@@ -208,10 +285,10 @@ export default function TeamPage() {
               <div>
                 <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
                   <Users className="w-7 h-7 text-secondary" />
-                  Team
+                  {t.title}
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Manage the users in your workspace
+                  {t.subtitle}
                   {authUser?.organizationName ? ` (${authUser.organizationName})` : ""}
                 </p>
               </div>
@@ -220,16 +297,16 @@ export default function TeamPage() {
                 <DialogTrigger asChild>
                   <Button className="gap-2">
                     <Plus className="w-4 h-4" />
-                    Add user
+                    {t.addUser}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Add user to workspace</DialogTitle>
+                    <DialogTitle>{t.addUserDialog}</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleCreateUser} className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Email</Label>
+                      <Label>{t.email}</Label>
                       <Input
                         type="email"
                         value={formData.email}
@@ -238,7 +315,7 @@ export default function TeamPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Username</Label>
+                      <Label>{t.username}</Label>
                       <Input
                         value={formData.username}
                         onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -246,7 +323,7 @@ export default function TeamPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Temporary password</Label>
+                      <Label>{t.tempPassword}</Label>
                       <Input
                         type="password"
                         value={formData.password}
@@ -257,14 +334,14 @@ export default function TeamPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label>First name</Label>
+                        <Label>{t.firstName}</Label>
                         <Input
                           value={formData.first_name}
                           onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Last name</Label>
+                        <Label>{t.lastName}</Label>
                         <Input
                           value={formData.last_name}
                           onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
@@ -275,7 +352,7 @@ export default function TeamPage() {
                     {formError && <p className="text-sm text-destructive">{formError}</p>}
 
                     <Button type="submit" className="w-full" disabled={submitLoading}>
-                      {submitLoading ? "Creating..." : "Create user"}
+                      {submitLoading ? t.creating : t.createUser}
                     </Button>
                   </form>
                 </DialogContent>
@@ -285,17 +362,15 @@ export default function TeamPage() {
             {/* Members list */}
             <Card className="bg-card/40 border-border/40">
               <CardHeader>
-                <CardTitle>Workspace members</CardTitle>
+                <CardTitle>{t.membersTitle}</CardTitle>
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <p className="text-sm text-muted-foreground">Loading users...</p>
+                  <p className="text-sm text-muted-foreground">{t.loading}</p>
                 ) : error ? (
                   <p className="text-sm text-destructive">{error}</p>
                 ) : users.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    You are the only member in this workspace. Use the button above to add more users.
-                  </p>
+                  <p className="text-sm text-muted-foreground">{t.empty}</p>
                 ) : (
                   <div className="space-y-2">
                     {users.map((u, idx) => {
@@ -334,11 +409,11 @@ export default function TeamPage() {
                             <div className="flex items-center gap-2">
                               {isOwner ? (
                                 <Badge variant="secondary" className="text-xs">
-                                  Owner
+                                  {t.owner}
                                 </Badge>
                               ) : (
                                 <Badge variant="outline" className="text-xs">
-                                  Member
+                                  {t.member}
                                 </Badge>
                               )}
                               <span
@@ -362,10 +437,10 @@ export default function TeamPage() {
                                   className="text-xs"
                                 >
                                   {statusUpdatingId === u.id
-                                    ? "Updating..."
+                                    ? t.updating
                                     : isActive
-                                      ? "Deactivate"
-                                      : "Activate"}
+                                      ? t.deactivate
+                                      : t.activate}
                                 </Button>
                                 <Button
                                   size="sm"
@@ -373,7 +448,7 @@ export default function TeamPage() {
                                   className="text-xs"
                                   onClick={() => openResetModal(u)}
                                 >
-                                  Reset password
+                                  {t.resetPassword}
                                 </Button>
                                 <Button
                                   size="sm"
@@ -387,7 +462,7 @@ export default function TeamPage() {
                                     })
                                   }
                                 >
-                                  Delete
+                                  {t.delete}
                                 </Button>
                               </div>
                             )}
@@ -407,14 +482,14 @@ export default function TeamPage() {
       <Dialog open={resetModal.isOpen} onOpenChange={(open) => setResetModal((prev) => ({ ...prev, isOpen: open }))}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Reset password</DialogTitle>
+            <DialogTitle>{t.resetTitle}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleResetPassword} className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Set a new password for <span className="font-medium">{resetModal.username}</span>.
+              {t.resetCopy} <span className="font-medium">{resetModal.username}</span>.
             </p>
             <div className="space-y-2">
-              <Label>New password</Label>
+              <Label>{t.newPassword}</Label>
               <div className="relative">
                 <Input
                   type={showResetPassword ? "text" : "password"}
@@ -428,14 +503,14 @@ export default function TeamPage() {
                   type="button"
                   onClick={() => setShowResetPassword((prev) => !prev)}
                   className="absolute right-2 top-2.5 inline-flex items-center justify-center rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                  aria-label={showResetPassword ? "Hide password" : "Show password"}
+                  aria-label={showResetPassword ? t.hidePassword : t.showPassword}
                 >
                   {showResetPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Confirm password</Label>
+              <Label>{t.confirmPassword}</Label>
               <Input
                 type={showResetPassword ? "text" : "password"}
                 value={resetPasswordConfirm}
@@ -447,7 +522,7 @@ export default function TeamPage() {
             </div>
             {resetError && <p className="text-sm text-destructive">{resetError}</p>}
             <Button type="submit" className="w-full" disabled={resetLoading}>
-              {resetLoading ? "Saving..." : "Save password"}
+              {resetLoading ? t.saving : t.savePassword}
             </Button>
           </form>
         </DialogContent>
@@ -456,8 +531,8 @@ export default function TeamPage() {
       {/* Delete user confirm modal */}
       <ConfirmDeleteModal
         isOpen={deleteModal.isOpen}
-        title="Remove user"
-        description="Are you sure you want to remove this user from the workspace? They won't be able to sign in anymore."
+        title={t.removeTitle}
+        description={t.removeDescription}
         itemName={deleteModal.username}
         onConfirm={handleDeleteUser}
         onCancel={() => setDeleteModal({ isOpen: false, userId: null, username: "" })}
