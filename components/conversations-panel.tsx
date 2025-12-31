@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
 import { Loader, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 import { listConversations, deleteConversation } from "@/lib/api"
+import { useLanguage } from "@/components/language-provider"
 
 interface Conversation {
   id: number
@@ -25,6 +26,7 @@ export function ConversationsPanel({
   onSelectConversation,
   onNewConversation,
 }: ConversationsPanelProps) {
+  const { language } = useLanguage()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
   const [deleteModal, setDeleteModal] = useState<{
@@ -37,6 +39,33 @@ export function ConversationsPanel({
     convTitle: "",
   })
   const [isDeleting, setIsDeleting] = useState(false)
+
+  const copy = {
+    es: {
+      title: "Conversaciones",
+      newConversation: "Nueva conversación",
+      expand: "Expandir panel de conversaciones",
+      collapse: "Contraer panel de conversaciones",
+      empty: "Aún no hay conversaciones",
+      untitled: "Conversación sin título",
+      conversation: "Conversación",
+      deleteTitle: "Eliminar conversación",
+      deleteDescription: "¿Seguro que quieres eliminar esta conversación? Esta acción no se puede deshacer.",
+    },
+    en: {
+      title: "Conversations",
+      newConversation: "New conversation",
+      expand: "Expand conversations panel",
+      collapse: "Collapse conversations panel",
+      empty: "No conversations yet",
+      untitled: "Untitled conversation",
+      conversation: "Conversation",
+      deleteTitle: "Delete Conversation",
+      deleteDescription: "Are you sure you want to delete this conversation? This action cannot be undone.",
+    },
+  } as const
+
+  const t = copy[language]
 
   // 👉 estado para contraer / expandir lateralmente
   const [collapsed, setCollapsed] = useState(false)
@@ -75,10 +104,16 @@ export function ConversationsPanel({
     const now = new Date()
     const diff = now.getTime() - date.getTime()
 
-    if (diff < 60000) return "just now"
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
-    return date.toLocaleDateString()
+    if (diff < 60000) return language === "es" ? "ahora mismo" : "just now"
+    if (diff < 3600000)
+      return language === "es"
+        ? `hace ${Math.floor(diff / 60000)}m`
+        : `${Math.floor(diff / 60000)}m ago`
+    if (diff < 86400000)
+      return language === "es"
+        ? `hace ${Math.floor(diff / 3600000)}h`
+        : `${Math.floor(diff / 3600000)}h ago`
+    return date.toLocaleDateString(language === "es" ? "es-ES" : "en-US")
   }
 
   return (
@@ -100,16 +135,14 @@ export function ConversationsPanel({
                 onClick={() => setCollapsed(false)}
               >
                 <ChevronRight className="w-4 h-4" />
-                <span className="sr-only">Expand conversations panel</span>
+                <span className="sr-only">{t.expand}</span>
               </Button>
             </div>
           ) : (
             // Versión expandida: título + botón para colapsar + New conversation
             <div className="p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Conversations
-                </span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.title}</span>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -117,13 +150,13 @@ export function ConversationsPanel({
                   onClick={() => setCollapsed(true)}
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  <span className="sr-only">Collapse conversations panel</span>
+                  <span className="sr-only">{t.collapse}</span>
                 </Button>
               </div>
 
               <Button onClick={onNewConversation} className="w-full gap-2" size="sm">
                 <Plus className="w-4 h-4" />
-                New conversation
+                {t.newConversation}
               </Button>
             </div>
           )}
@@ -138,7 +171,7 @@ export function ConversationsPanel({
               </div>
             ) : conversations.length === 0 ? (
               <div className="text-center text-xs text-muted-foreground py-8 px-2">
-                No conversations yet
+                {t.empty}
               </div>
             ) : (
               conversations.map((conversation) => (
@@ -154,7 +187,7 @@ export function ConversationsPanel({
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate leading-tight">
-                        {conversation.title || `Untitled conversation #${conversation.id}`}
+                        {conversation.title || `${t.untitled} #${conversation.id}`}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {formatTime(conversation.updated_at)}
@@ -167,7 +200,7 @@ export function ConversationsPanel({
                           isOpen: true,
                           convId: conversation.id,
                           convTitle:
-                            conversation.title || `Conversation #${conversation.id}`,
+                            conversation.title || `${t.conversation} #${conversation.id}`,
                         })
                       }}
                       className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0"
@@ -182,15 +215,15 @@ export function ConversationsPanel({
         )}
       </div>
 
-      <ConfirmDeleteModal
-        isOpen={deleteModal.isOpen}
-        title="Delete Conversation"
-        description="Are you sure you want to delete this conversation? This action cannot be undone."
-        itemName={deleteModal.convTitle}
-        onConfirm={handleDeleteConversation}
-        onCancel={() => setDeleteModal({ isOpen: false, convId: null, convTitle: "" })}
-        isLoading={isDeleting}
-      />
+        <ConfirmDeleteModal
+          isOpen={deleteModal.isOpen}
+          title={t.deleteTitle}
+          description={t.deleteDescription}
+          itemName={deleteModal.convTitle}
+          onConfirm={handleDeleteConversation}
+          onCancel={() => setDeleteModal({ isOpen: false, convId: null, convTitle: "" })}
+          isLoading={isDeleting}
+        />
     </>
   )
 }

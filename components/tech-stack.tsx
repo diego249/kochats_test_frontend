@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
+import { useLanguage } from "@/components/language-provider"
 
 const technologies = [
   { name: "Python", category: "Backend" },
@@ -19,6 +20,27 @@ const technologies = [
 ]
 
 export function TechStack() {
+  const { language } = useLanguage()
+
+  const copy = {
+    es: {
+      title: "Tecnologías de",
+      accent: "Vanguardia",
+      subtitle: "Utilizamos las mejores herramientas y frameworks para construir soluciones robustas y escalables",
+      note:
+        "Nuestro stack tecnológico está en constante evolución para incorporar las últimas innovaciones en inteligencia artificial y desarrollo de software.",
+    },
+    en: {
+      title: "Cutting-edge",
+      accent: "Technologies",
+      subtitle: "We use the best tools and frameworks to build robust, scalable solutions",
+      note:
+        "Our tech stack evolves constantly to adopt the latest innovations in AI and software development.",
+    },
+  } as const
+
+  const t = copy[language]
+
   return (
     <section id="tecnologia" className="py-20 md:py-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,11 +53,11 @@ export function TechStack() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-balance">
-            Tecnologías de{" "}
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Vanguardia</span>
+            {t.title}{" "}
+            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{t.accent}</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance leading-relaxed">
-            Utilizamos las mejores herramientas y frameworks para construir soluciones robustas y escalables
+            {t.subtitle}
           </p>
         </motion.div>
 
@@ -79,8 +101,7 @@ export function TechStack() {
           className="mt-12 text-center"
         >
           <p className="text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Nuestro stack tecnológico está en constante evolución para incorporar las últimas innovaciones en
-            inteligencia artificial y desarrollo de software.
+            {t.note}
           </p>
         </motion.div>
       </div>

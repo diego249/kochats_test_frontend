@@ -14,58 +14,130 @@ import {
   BarChart3,
   CheckCircle2,
 } from "lucide-react"
-
-const botTypes = [
-  {
-    icon: ShoppingCart,
-    title: "Bot de Ventas",
-    description: "Automatiza el proceso de ventas, desde la prospección hasta el cierre de negocios.",
-    features: ["Calificación de leads", "Seguimiento automático", "Propuestas personalizadas"],
-  },
-  {
-    icon: Package,
-    title: "Bot de Gestión de Pedidos",
-    description: "Procesa pedidos, gestiona inventario y coordina entregas de forma autónoma.",
-    features: ["Procesamiento 24/7", "Actualización de stock", "Notificaciones automáticas"],
-  },
-  {
-    icon: Users,
-    title: "Asistente de Gestión",
-    description: "Ayuda en tareas administrativas, programación y coordinación de equipos.",
-    features: ["Gestión de agenda", "Coordinación de reuniones", "Reportes automáticos"],
-  },
-  {
-    icon: MessageSquare,
-    title: "Bot de Atención al Cliente",
-    description: "Responde consultas, resuelve problemas y escala casos complejos cuando es necesario.",
-    features: ["Respuestas instantáneas", "Soporte multicanal", "Aprendizaje continuo"],
-  },
-]
-
-const benefits = [
-  {
-    icon: Zap,
-    title: "Automatización Inteligente",
-    description: "Reduce tareas repetitivas y libera tiempo para actividades estratégicas.",
-  },
-  {
-    icon: Clock,
-    title: "Disponibilidad 24/7",
-    description: "Tus agentes trabajan sin descanso, atendiendo necesidades en cualquier momento.",
-  },
-  {
-    icon: Shield,
-    title: "Seguridad y Privacidad",
-    description: "Protección de datos empresariales con los más altos estándares de seguridad.",
-  },
-  {
-    icon: BarChart3,
-    title: "Mejora Continua",
-    description: "Los agentes aprenden de cada interacción para optimizar su rendimiento.",
-  },
-]
+import { useLanguage } from "@/components/language-provider"
 
 export function AgentesSection() {
+  const { language } = useLanguage()
+
+  const copy = {
+    es: {
+      badge: "Producto Principal",
+      heading: "Agentes Inteligentes",
+      headingAccent: "para tu Empresa",
+      description:
+        "Crea bots especializados que trabajan con la información de tu empresa, automatizando procesos y actuando como asistentes reales en ventas, gestión, atención al cliente y más.",
+      botTypes: [
+        {
+          icon: ShoppingCart,
+          title: "Bot de Ventas",
+          description: "Automatiza el proceso de ventas, desde la prospección hasta el cierre de negocios.",
+          features: ["Calificación de leads", "Seguimiento automático", "Propuestas personalizadas"],
+        },
+        {
+          icon: Package,
+          title: "Bot de Gestión de Pedidos",
+          description: "Procesa pedidos, gestiona inventario y coordina entregas de forma autónoma.",
+          features: ["Procesamiento 24/7", "Actualización de stock", "Notificaciones automáticas"],
+        },
+        {
+          icon: Users,
+          title: "Asistente de Gestión",
+          description: "Ayuda en tareas administrativas, programación y coordinación de equipos.",
+          features: ["Gestión de agenda", "Coordinación de reuniones", "Reportes automáticos"],
+        },
+        {
+          icon: MessageSquare,
+          title: "Bot de Atención al Cliente",
+          description: "Responde consultas, resuelve problemas y escala casos complejos cuando es necesario.",
+          features: ["Respuestas instantáneas", "Soporte multicanal", "Aprendizaje continuo"],
+        },
+      ],
+      benefitsTitle: "Beneficios de los",
+      benefitsAccent: "Agentes Inteligentes",
+      benefits: [
+        {
+          icon: Zap,
+          title: "Automatización Inteligente",
+          description: "Reduce tareas repetitivas y libera tiempo para actividades estratégicas.",
+        },
+        {
+          icon: Clock,
+          title: "Disponibilidad 24/7",
+          description: "Tus agentes trabajan sin descanso, atendiendo necesidades en cualquier momento.",
+        },
+        {
+          icon: Shield,
+          title: "Seguridad y Privacidad",
+          description: "Protección de datos empresariales con los más altos estándares de seguridad.",
+        },
+        {
+          icon: BarChart3,
+          title: "Mejora Continua",
+          description: "Los agentes aprenden de cada interacción para optimizar su rendimiento.",
+        },
+      ],
+    },
+    en: {
+      badge: "Flagship Product",
+      heading: "Intelligent Agents",
+      headingAccent: "for your Company",
+      description:
+        "Build specialized bots that work with your company's information, automating processes and acting like real assistants in sales, operations, support, and more.",
+      botTypes: [
+        {
+          icon: ShoppingCart,
+          title: "Sales Bot",
+          description: "Automates the sales process from prospecting to closing deals.",
+          features: ["Lead qualification", "Automated follow-up", "Personalized proposals"],
+        },
+        {
+          icon: Package,
+          title: "Order Management Bot",
+          description: "Processes orders, manages inventory, and coordinates deliveries autonomously.",
+          features: ["24/7 processing", "Stock updates", "Automatic notifications"],
+        },
+        {
+          icon: Users,
+          title: "Operations Assistant",
+          description: "Supports administrative tasks, scheduling, and team coordination.",
+          features: ["Agenda management", "Meeting coordination", "Automated reports"],
+        },
+        {
+          icon: MessageSquare,
+          title: "Customer Support Bot",
+          description: "Answers questions, solves issues, and escalates complex cases when needed.",
+          features: ["Instant replies", "Omnichannel support", "Continuous learning"],
+        },
+      ],
+      benefitsTitle: "Benefits of",
+      benefitsAccent: "Intelligent Agents",
+      benefits: [
+        {
+          icon: Zap,
+          title: "Smart Automation",
+          description: "Cut repetitive work and free up time for strategy.",
+        },
+        {
+          icon: Clock,
+          title: "24/7 Availability",
+          description: "Your agents never sleep, covering every time zone.",
+        },
+        {
+          icon: Shield,
+          title: "Security and Privacy",
+          description: "Enterprise data protection with top security standards.",
+        },
+        {
+          icon: BarChart3,
+          title: "Continuous Improvement",
+          description: "Agents learn from every interaction to perform better.",
+        },
+      ],
+    },
+  } as const
+
+  const t = copy[language]
+
   return (
     <>
       {/* Main Section */}
@@ -81,23 +153,20 @@ export function AgentesSection() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
               <Bot size={20} className="text-primary" />
-              <span className="text-sm font-medium text-primary">Producto Principal</span>
+              <span className="text-sm font-medium text-primary">{t.badge}</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-balance">
-              Agentes Inteligentes{" "}
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                para tu Empresa
-              </span>
+              {t.heading}{" "}
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{t.headingAccent}</span>
             </h2>
             <p className="text-xl text-muted-foreground text-balance leading-relaxed">
-              Crea bots especializados que trabajan con la información de tu empresa, automatizando procesos y actuando
-              como asistentes reales en ventas, gestión, atención al cliente y más.
+              {t.description}
             </p>
           </motion.div>
 
           {/* Bot Types Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-20">
-            {botTypes.map((bot, index) => {
+            {t.botTypes.map((bot, index) => {
               const Icon = bot.icon
               return (
                 <motion.div
@@ -140,15 +209,13 @@ export function AgentesSection() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-balance">
-              Beneficios de los{" "}
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Agentes Inteligentes
-              </span>
+              {t.benefitsTitle}{" "}
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{t.benefitsAccent}</span>
             </h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {benefits.map((benefit, index) => {
+            {t.benefits.map((benefit, index) => {
               const Icon = benefit.icon
               return (
                 <motion.div

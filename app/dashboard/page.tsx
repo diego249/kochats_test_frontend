@@ -11,13 +11,62 @@ import { getAuthToken } from "@/lib/auth"
 import { listDataSources, listBots, listConversations } from "@/lib/api"
 import Link from "next/link"
 import { ArrowRight, Database, Bot, MessageSquare, TrendingUp, Clock } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 
 export default function DashboardPage() {
   const router = useRouter()
+  const { language } = useLanguage()
   const [dataSources, setDataSources] = useState<any[]>([])
   const [bots, setBots] = useState<any[]>([])
   const [conversations, setConversations] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  const copy = {
+    es: {
+      title: "Dashboard",
+      subtitle: "Gestiona tus bots de IA y fuentes de datos",
+      stats: {
+        bots: "Bots activos",
+        datasources: "Fuentes de datos",
+        totalMessages: "Mensajes totales",
+        conversations: "Conversaciones",
+        perBot: "conversaciones por bot",
+        activeCount: "activos",
+        totalInteractions: "Interacciones totales",
+      },
+      recentBots: "Bots recientes",
+      recentSubtitle: "Tus últimos asistentes de IA",
+      viewAll: "Ver todos",
+      conversationsLabel: "conversaciones",
+      noDescription: "Sin descripción",
+      noBots: "Aún no hay bots. Crea tu primer bot para empezar.",
+      createBot: "Crear bot",
+      conversationsPerBot: "conversaciones",
+    },
+    en: {
+      title: "Dashboard",
+      subtitle: "Manage your AI bots and data sources",
+      stats: {
+        bots: "Active Bots",
+        datasources: "Data Sources",
+        totalMessages: "Total Messages",
+        conversations: "Conversations",
+        perBot: "conversations per bot",
+        activeCount: "active",
+        totalInteractions: "Total interactions",
+      },
+      recentBots: "Recent Bots",
+      recentSubtitle: "Your latest AI assistants",
+      viewAll: "View all",
+      conversationsLabel: "conversations",
+      noDescription: "No description",
+      noBots: "No bots yet. Create your first bot to get started.",
+      createBot: "Create Bot",
+      conversationsPerBot: "conversations",
+    },
+  } as const
+
+  const t = copy[language]
 
   useEffect(() => {
     const token = getAuthToken()
@@ -104,38 +153,38 @@ export default function DashboardPage() {
           <div className="p-8 space-y-8">
             {/* Header */}
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground mt-1">Manage your AI bots and data sources</p>
+              <h1 className="text-3xl font-bold text-foreground">{t.title}</h1>
+              <p className="text-muted-foreground mt-1">{t.subtitle}</p>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard
                 icon={Bot}
-                title="Active Bots"
+                title={t.stats.bots}
                 value={bots.length}
-                description={`${avgConversationsPerBot} conversations per bot`}
+                description={`${avgConversationsPerBot} ${t.stats.perBot}`}
                 href="/bots"
               />
               <StatCard
                 icon={Database}
-                title="Data Sources"
+                title={t.stats.datasources}
                 value={dataSources.length}
-                description={`${activeDataSources} active`}
+                description={`${activeDataSources} ${t.stats.activeCount}`}
                 trend={`${Math.round((activeDataSources / (dataSources.length || 1)) * 100)}%`}
                 href="/datasources"
               />
               <StatCard
                 icon={MessageSquare}
-                title="Total Messages"
+                title={t.stats.totalMessages}
                 value={totalMessages}
-                description={`${conversations.length} conversations`}
+                description={`${conversations.length} ${t.conversationsPerBot}`}
               />
               <StatCard
                 icon={Clock}
-                title="Conversations"
+                title={t.stats.conversations}
                 value={conversations.length}
-                description="Total interactions"
+                description={t.stats.totalInteractions}
               />
             </div>
 
@@ -143,8 +192,8 @@ export default function DashboardPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground">Recent Bots</h2>
-                  <p className="text-sm text-muted-foreground mt-1">Your latest AI assistants</p>
+                  <h2 className="text-xl font-semibold text-foreground">{t.recentBots}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">{t.recentSubtitle}</p>
                 </div>
                 <Link href="/bots">
                   <Button
@@ -152,7 +201,7 @@ export default function DashboardPage() {
                     size="sm"
                     className="gap-2 transition-all duration-200 hover:border-secondary/50 bg-transparent"
                   >
-                    View all
+                    {t.viewAll}
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
@@ -183,12 +232,12 @@ export default function DashboardPage() {
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <CardTitle className="text-base text-foreground group-hover:text-secondary transition-colors duration-200">
-                                {bot.name}
-                              </CardTitle>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {conversations.filter((c) => c.bot_id === bot.id).length} conversations
-                              </p>
+                            <CardTitle className="text-base text-foreground group-hover:text-secondary transition-colors duration-200">
+                              {bot.name}
+                            </CardTitle>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                {conversations.filter((c) => c.bot_id === bot.id).length} {t.conversationsLabel}
+                            </p>
                             </div>
                             <div className="p-2 rounded-lg bg-secondary/10 group-hover:bg-secondary/20 transition-all duration-200">
                               <Bot className="w-4 h-4 text-secondary" />
@@ -197,7 +246,7 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                           <p className="text-sm text-muted-foreground line-clamp-2">
-                            {bot.description || "No description"}
+                            {bot.description || t.noDescription}
                           </p>
                         </CardContent>
                       </Card>
@@ -207,11 +256,11 @@ export default function DashboardPage() {
                   <Card className="bg-card/50 border border-border/50 md:col-span-2 lg:col-span-3">
                     <CardContent className="pt-6 text-center">
                       <Bot className="w-12 h-12 text-muted-foreground/20 mx-auto mb-2" />
-                      <p className="text-muted-foreground mb-4">No bots yet. Create your first bot to get started.</p>
+                      <p className="text-muted-foreground mb-4">{t.noBots}</p>
                       <Link href="/bots">
                         <Button size="sm" className="gap-2">
                           <Bot className="w-4 h-4" />
-                          Create Bot
+                          {t.createBot}
                         </Button>
                       </Link>
                     </CardContent>

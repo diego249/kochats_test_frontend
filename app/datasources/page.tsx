@@ -19,9 +19,11 @@ import { listDataSources, createDataSource, deleteDataSource, testDataSourceConn
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Trash2, Loader, Database, Check, X, Info } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 
 export default function DataSourcesPage() {
   const router = useRouter()
+  const { language } = useLanguage()
   const [dataSources, setDataSources] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [testing, setTesting] = useState<number | null>(null)
@@ -44,6 +46,69 @@ export default function DataSourcesPage() {
     sslmode: "prefer",
   })
   const [authUser, setAuthUserState] = useState<any>(null)
+
+  const copy = {
+    es: {
+      title: "Fuentes de datos",
+      subtitle: "Gestiona tus conexiones de base de datos",
+      newSource: "Nueva fuente de datos",
+      createSource: "Crear fuente de datos",
+      securityInfo: "Información de seguridad",
+      name: "Nombre",
+      engine: "Motor",
+      host: "Host",
+      port: "Puerto",
+      database: "Base de datos",
+      user: "Usuario",
+      password: "Contraseña",
+      sslMode: "Modo SSL",
+      create: "Crear",
+      connectionSuccess: "Conexión exitosa",
+      connectionFailed: "Conexión fallida",
+      connectedTitle: "Fuentes conectadas",
+      sourcesCount: "fuentes",
+      table: { name: "Nombre", engine: "Motor", host: "Host", status: "Estado", actions: "Acciones" },
+      active: "Activa",
+      inactive: "Inactiva",
+      test: "Probar",
+      empty: "Aún no hay fuentes de datos. Crea una para comenzar.",
+      deleteTitle: "Eliminar fuente de datos",
+      deleteDescription:
+        "¿Seguro que quieres eliminar esta fuente de datos? Los bots que dependan de ella pueden dejar de funcionar.",
+      deleteError: "No se pudo eliminar la fuente de datos",
+    },
+    en: {
+      title: "Data Sources",
+      subtitle: "Manage your database connections",
+      newSource: "New Data Source",
+      createSource: "Create Data Source",
+      securityInfo: "Security Info",
+      name: "Name",
+      engine: "Engine",
+      host: "Host",
+      port: "Port",
+      database: "Database",
+      user: "User",
+      password: "Password",
+      sslMode: "SSL Mode",
+      create: "Create",
+      connectionSuccess: "Connection successful",
+      connectionFailed: "Connection failed",
+      connectedTitle: "Connected Sources",
+      sourcesCount: "sources",
+      table: { name: "Name", engine: "Engine", host: "Host", status: "Status", actions: "Actions" },
+      active: "Active",
+      inactive: "Inactive",
+      test: "Test",
+      empty: "No data sources yet. Create one to get started.",
+      deleteTitle: "Delete Data Source",
+      deleteDescription:
+        "Are you sure you want to delete this data source? Any bots using this source may stop working.",
+      deleteError: "Failed to delete data source",
+    },
+  } as const
+
+  const t = copy[language]
 
   useEffect(() => {
     const token = getAuthToken()
@@ -106,7 +171,7 @@ export default function DataSourcesPage() {
     setTesting(id)
     try {
       const result = await testDataSourceConnection(id)
-      setTestResult({ id, success: result.ok, message: result.ok ? "Connection successful" : "Connection failed" })
+      setTestResult({ id, success: result.ok, message: result.ok ? t.connectionSuccess : t.connectionFailed })
       setTimeout(() => setTestResult(null), 3000)
     } catch (error: any) {
       setTestResult({ id, success: false, message: error.message })
@@ -127,7 +192,7 @@ export default function DataSourcesPage() {
       setDeleteModal({ isOpen: false, dsId: null, dsName: "" })
     } catch (error) {
       console.error("Error deleting datasource:", error)
-      alert("Failed to delete data source")
+      alert(t.deleteError)
     } finally {
       setIsDeleting(false)
     }
@@ -143,21 +208,21 @@ export default function DataSourcesPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Data Sources</h1>
-                <p className="text-sm text-muted-foreground mt-1">Manage your database connections</p>
+                <h1 className="text-3xl font-bold text-foreground">{t.title}</h1>
+                <p className="text-sm text-muted-foreground mt-1">{t.subtitle}</p>
               </div>
               {authUser?.isOrgOwner && (
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/20">
                       <Plus className="w-4 h-4" />
-                      New Data Source
+                      {t.newSource}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
                     <DialogHeader>
                       <div className="flex items-center justify-between">
-                        <DialogTitle>Create Data Source</DialogTitle>
+                        <DialogTitle>{t.createSource}</DialogTitle>
                         <Link href="/help/security" target="_blank">
                           <Button
                             variant="ghost"
@@ -165,14 +230,14 @@ export default function DataSourcesPage() {
                             className="gap-2 text-muted-foreground hover:text-foreground"
                           >
                             <Info className="w-4 h-4" />
-                            <span className="text-xs">Security Info</span>
+                            <span className="text-xs">{t.securityInfo}</span>
                           </Button>
                         </Link>
                       </div>
                     </DialogHeader>
                     <form onSubmit={handleCreateDataSource} className="space-y-4">
                       <div>
-                        <Label>Name</Label>
+                        <Label>{t.name}</Label>
                         <Input
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -181,7 +246,7 @@ export default function DataSourcesPage() {
                         />
                       </div>
                       <div>
-                        <Label>Engine</Label>
+                        <Label>{t.engine}</Label>
                         <Select
                           value={formData.engine}
                           onValueChange={(value) => setFormData({ ...formData, engine: value })}
@@ -196,7 +261,7 @@ export default function DataSourcesPage() {
                         </Select>
                       </div>
                       <div>
-                        <Label>Host</Label>
+                        <Label>{t.host}</Label>
                         <Input
                           value={formData.host}
                           onChange={(e) => setFormData({ ...formData, host: e.target.value })}
@@ -205,7 +270,7 @@ export default function DataSourcesPage() {
                         />
                       </div>
                       <div>
-                        <Label>Port</Label>
+                        <Label>{t.port}</Label>
                         <Input
                           type="number"
                           value={formData.port}
@@ -216,7 +281,7 @@ export default function DataSourcesPage() {
                         />
                       </div>
                       <div>
-                        <Label>Database</Label>
+                        <Label>{t.database}</Label>
                         <Input
                           value={formData.database}
                           onChange={(e) => setFormData({ ...formData, database: e.target.value })}
@@ -225,7 +290,7 @@ export default function DataSourcesPage() {
                         />
                       </div>
                       <div>
-                        <Label>User</Label>
+                        <Label>{t.user}</Label>
                         <Input
                           value={formData.user}
                           onChange={(e) => setFormData({ ...formData, user: e.target.value })}
@@ -234,7 +299,7 @@ export default function DataSourcesPage() {
                         />
                       </div>
                       <div>
-                        <Label>Password</Label>
+                        <Label>{t.password}</Label>
                         <Input
                           type="password"
                           value={formData.password}
@@ -243,7 +308,7 @@ export default function DataSourcesPage() {
                         />
                       </div>
                       <div>
-                        <Label>SSL Mode</Label>
+                        <Label>{t.sslMode}</Label>
                         <Select
                           value={formData.sslmode}
                           onValueChange={(value) => setFormData({ ...formData, sslmode: value })}
@@ -260,7 +325,7 @@ export default function DataSourcesPage() {
                         </Select>
                       </div>
                       <Button type="submit" className="w-full">
-                        Create
+                        {t.create}
                       </Button>
                     </form>
                   </DialogContent>
@@ -287,10 +352,10 @@ export default function DataSourcesPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <Database className="w-5 h-5 text-secondary" />
-                    Connected Sources
+                    {t.connectedTitle}
                   </CardTitle>
                   <span className="text-xs px-2 py-1 rounded-full bg-secondary/10 text-secondary">
-                    {dataSources.length} sources
+                    {dataSources.length} {t.sourcesCount}
                   </span>
                 </div>
               </CardHeader>
@@ -298,11 +363,11 @@ export default function DataSourcesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border/30">
-                      <TableHead>Name</TableHead>
-                      <TableHead>Engine</TableHead>
-                      <TableHead>Host</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t.table.name}</TableHead>
+                      <TableHead>{t.table.engine}</TableHead>
+                      <TableHead>{t.table.host}</TableHead>
+                      <TableHead>{t.table.status}</TableHead>
+                      <TableHead className="text-right">{t.table.actions}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -326,7 +391,7 @@ export default function DataSourcesPage() {
                         <TableCell className="text-muted-foreground">{ds.config.host}</TableCell>
                         <TableCell>
                           <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
                               ds.is_active ? "bg-green-500/10 text-green-600" : "bg-muted/50 text-muted-foreground"
                             }`}
                           >
@@ -335,7 +400,7 @@ export default function DataSourcesPage() {
                                 ds.is_active ? "bg-green-600" : "bg-muted-foreground"
                               }`}
                             />
-                            {ds.is_active ? "Active" : "Inactive"}
+                            {ds.is_active ? t.active : t.inactive}
                           </span>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
@@ -346,7 +411,7 @@ export default function DataSourcesPage() {
                             disabled={testing === ds.id}
                             className="transition-all duration-200 hover:border-secondary/50"
                           >
-                            {testing === ds.id ? <Loader className="w-4 h-4 animate-spin" /> : "Test"}
+                            {testing === ds.id ? <Loader className="w-4 h-4 animate-spin" /> : t.test}
                           </Button>
 
                           {/* Botón de borrar solo para owners */}
@@ -368,7 +433,7 @@ export default function DataSourcesPage() {
                 {dataSources.length === 0 && !loading && (
                   <div className="p-8 text-center">
                     <Database className="w-12 h-12 text-muted-foreground/20 mx-auto mb-2" />
-                    <p className="text-muted-foreground mb-4">No data sources yet. Create one to get started.</p>
+                    <p className="text-muted-foreground mb-4">{t.empty}</p>
                   </div>
                 )}
               </CardContent>
@@ -381,8 +446,8 @@ export default function DataSourcesPage() {
       {authUser?.isOrgOwner && (
         <ConfirmDeleteModal
           isOpen={deleteModal.isOpen}
-          title="Delete Data Source"
-          description="Are you sure you want to delete this data source? Any bots using this source may stop working."
+          title={t.deleteTitle}
+          description={t.deleteDescription}
           itemName={deleteModal.dsName}
           onConfirm={handleDeleteDataSource}
           onCancel={() => setDeleteModal({ isOpen: false, dsId: null, dsName: "" })}

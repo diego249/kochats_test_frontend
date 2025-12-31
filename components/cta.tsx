@@ -3,8 +3,30 @@
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Mail } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 
 export function CTA() {
+  const { language } = useLanguage()
+
+  const copy = {
+    es: {
+      title: "¿Listo para transformar tu empresa con",
+      accent: "Inteligencia Artificial?",
+      subtitle: "Contáctanos hoy y descubre cómo podemos ayudarte a convertirte en una verdadera Data Driven Company.",
+      cta: "Ir al login",
+      badges: ["Respuesta en 24h", "Consulta gratuita", "Sin compromiso"],
+    },
+    en: {
+      title: "Ready to transform your company with",
+      accent: "Artificial Intelligence?",
+      subtitle: "Reach out today and discover how we can help you become a true Data Driven Company.",
+      cta: "Go to login",
+      badges: ["Response within 24h", "Free consultation", "No commitment"],
+    },
+  } as const
+
+  const t = copy[language]
+
   return (
     <section className="py-20 md:py-32 relative overflow-hidden">
       {/* Background Glow */}
@@ -21,13 +43,11 @@ export function CTA() {
           className="max-w-4xl mx-auto text-center"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-balance">
-            ¿Listo para transformar tu empresa con{" "}
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Inteligencia Artificial?
-            </span>
+            {t.title}{" "}
+            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{t.accent}</span>
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto text-balance leading-relaxed">
-            Contáctanos hoy y descubre cómo podemos ayudarte a convertirte en una verdadera Data Driven Company.
+            {t.subtitle}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -38,7 +58,7 @@ export function CTA() {
             >
               <a href="/login" className="flex items-center gap-2">
                 <Mail size={20} />
-                Ir al login
+                {t.cta}
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </a>
             </Button>
@@ -52,18 +72,12 @@ export function CTA() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mt-12 flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground"
           >
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-              <span>Respuesta en 24h</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-secondary" />
-              <span>Consulta gratuita</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-              <span>Sin compromiso</span>
-            </div>
+            {[t.badges[0], t.badges[1], t.badges[2]].map((badge, idx) => (
+              <div key={badge} className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${idx === 1 ? "bg-secondary" : "bg-primary"}`} />
+                <span>{badge}</span>
+              </div>
+            ))}
           </motion.div>
         </motion.div>
       </div>

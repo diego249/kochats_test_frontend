@@ -7,11 +7,31 @@ import { Button } from "@/components/ui/button"
 import { logout } from "@/lib/api"
 import { clearAuthToken, clearAuthUser, getAuthUser } from "@/lib/auth"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LanguageToggle } from "@/components/language-toggle"
+import { useLanguage } from "@/components/language-provider"
 
 export function DashboardHeader({ username }: { username?: string }) {
   const router = useRouter()
   const authUser = getAuthUser()
   const [showProfile, setShowProfile] = useState(false)
+  const { language } = useLanguage()
+
+  const copy = {
+    es: {
+      owner: "Propietario",
+      member: "Miembro",
+      freePlan: "Plan gratuito",
+      logout: "Cerrar sesión",
+    },
+    en: {
+      owner: "Owner",
+      member: "Member",
+      freePlan: "Free plan",
+      logout: "Logout",
+    },
+  } as const
+
+  const t = copy[language]
 
   const handleLogout = async () => {
     try {
@@ -34,7 +54,10 @@ export function DashboardHeader({ username }: { username?: string }) {
       </div>
 
       <div className="flex items-center gap-4">
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <LanguageToggle />
+          <ThemeToggle />
+        </div>
         <div className="relative">
           <Button
             variant="outline"
@@ -56,11 +79,11 @@ export function DashboardHeader({ username }: { username?: string }) {
                 <p className="text-muted-foreground">
                   <span className="font-medium text-foreground">{authUser?.organizationName}</span>
                 </p>
-                <p className="text-xs text-muted-foreground">{authUser?.isOrgOwner ? "Owner" : "Member"}</p>
+                <p className="text-xs text-muted-foreground">{authUser?.isOrgOwner ? t.owner : t.member}</p>
                 <p className="text-xs text-muted-foreground">
                   {authUser?.plan
                     ? `${authUser.plan.charAt(0).toUpperCase() + authUser.plan.slice(1)} plan`
-                    : "Free plan"}
+                    : t.freePlan}
                 </p>
               </div>
               <Button
@@ -70,7 +93,7 @@ export function DashboardHeader({ username }: { username?: string }) {
                 className="w-full gap-2 bg-transparent mt-3 border-t pt-3"
               >
                 <LogOut className="w-4 h-4" />
-                Logout
+                {t.logout}
               </Button>
             </div>
           )}

@@ -16,14 +16,43 @@ import {
 } from "lucide-react"
 import { logout } from "@/lib/api"
 import { clearAuthToken, clearAuthUser, getAuthUser } from "@/lib/auth"
+import { useLanguage } from "@/components/language-provider"
 
 export function Sidebar() {
   const router = useRouter()
   const pathname = usePathname()
+  const { language } = useLanguage()
 
   // Evitamos leer authUser directamente en render para no romper SSR/hydration
   const [authUser, setAuthUser] = useState<any | null>(null)
   const [collapsed, setCollapsed] = useState(false)
+
+  const copy = {
+    es: {
+      dashboard: "Dashboard",
+      datasources: "Fuentes de datos",
+      bots: "Bots",
+      team: "Equipo",
+      help: "Seguridad y protección de datos",
+      expand: "Expandir menú lateral",
+      collapse: "Contraer menú lateral",
+      logout: "Cerrar sesión",
+      helpTitle: "Ayuda",
+    },
+    en: {
+      dashboard: "Dashboard",
+      datasources: "Data Sources",
+      bots: "Bots",
+      team: "Team",
+      help: "Security & Data Protection",
+      expand: "Expand sidebar",
+      collapse: "Collapse sidebar",
+      logout: "Logout",
+      helpTitle: "Help",
+    },
+  } as const
+
+  const t = copy[language]
 
   useEffect(() => {
     const user = getAuthUser()
@@ -43,17 +72,17 @@ export function Sidebar() {
   }
 
   const baseMenuItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/datasources", label: "Data Sources", icon: Database },
-    { href: "/bots", label: "Bots", icon: Bot },
+    { href: "/dashboard", label: t.dashboard, icon: LayoutDashboard },
+    { href: "/datasources", label: t.datasources, icon: Database },
+    { href: "/bots", label: t.bots, icon: Bot },
   ]
 
   const menuItems =
     authUser?.isOrgOwner
-      ? [...baseMenuItems, { href: "/team", label: "Team", icon: Users }]
+      ? [...baseMenuItems, { href: "/team", label: t.team, icon: Users }]
       : baseMenuItems
 
-  const helpItems = [{ href: "/help/security", label: "Security & Data Protection", icon: HelpCircle }]
+  const helpItems = [{ href: "/help/security", label: t.help, icon: HelpCircle }]
 
   return (
     <div
@@ -69,17 +98,17 @@ export function Sidebar() {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
               <Bot className="w-5 h-5 text-white" />
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="shrink-0"
-              onClick={() => setCollapsed(false)}
-            >
-              <ChevronRight className="w-4 h-4" />
-              <span className="sr-only">Expand sidebar</span>
-            </Button>
-          </div>
-        ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0"
+                onClick={() => setCollapsed(false)}
+              >
+                <ChevronRight className="w-4 h-4" />
+                <span className="sr-only">{t.expand}</span>
+              </Button>
+            </div>
+          ) : (
           // Versión expandida: logo, título y botón para colapsar
           <div className="flex items-center gap-2 justify-between">
             <div className="flex items-center gap-3">
@@ -100,7 +129,7 @@ export function Sidebar() {
               onClick={() => setCollapsed(true)}
             >
               <ChevronLeft className="w-4 h-4" />
-              <span className="sr-only">Collapse sidebar</span>
+              <span className="sr-only">{t.collapse}</span>
             </Button>
           </div>
         )}
@@ -142,7 +171,7 @@ export function Sidebar() {
       <div className="p-4 border-t border-border/20 space-y-2">
         {!collapsed && (
           <div className="text-xs font-semibold text-muted-foreground uppercase px-2 mb-2">
-            Help
+            {t.helpTitle}
           </div>
         )}
         {helpItems.map((item) => {
@@ -185,7 +214,7 @@ export function Sidebar() {
           onClick={handleLogout}
         >
           <LogOut className="w-4 h-4" />
-          {!collapsed && <span>Logout</span>}
+          {!collapsed && <span>{t.logout}</span>}
         </Button>
       </div>
     </div>
