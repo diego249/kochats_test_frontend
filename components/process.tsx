@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
-import { Search, Lightbulb, Code, Rocket } from "lucide-react"
+import { Database, Layers, ShieldCheck, Rocket } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
 
 export function Process() {
@@ -10,64 +10,64 @@ export function Process() {
 
   const copy = {
     es: {
-      title: "Nuestro",
-      accent: "Proceso",
-      subtitle: "Un enfoque estructurado para transformar tu visión en realidad",
+      title: "Cómo funciona",
+      accent: "la plataforma",
+      subtitle: "Enciende bots sobre tus datos sin proyectos a medida",
       steps: [
         {
-          icon: Search,
-          title: "Análisis",
-          description: "Estudiamos tu negocio y datos para identificar oportunidades de mejora con IA.",
+          icon: Database,
+          title: "Conecta tus datos",
+          description: "Integra bases SQL, documentos, APIs y CRM en un solo lugar.",
         },
         {
-          icon: Lightbulb,
-          title: "Estrategia",
-          description: "Diseñamos una solución personalizada que se adapta a tus necesidades específicas.",
+          icon: Layers,
+          title: "Diseña el agente",
+          description: "Elige plantillas o crea flujos con instrucciones, acciones y tono.",
         },
         {
-          icon: Code,
-          title: "Desarrollo",
-          description: "Implementamos la solución con las mejores prácticas y tecnologías de vanguardia.",
+          icon: ShieldCheck,
+          title: "Define guardrails",
+          description: "Permisos, auditoría y límites para proteger tu información.",
         },
         {
           icon: Rocket,
-          title: "Despliegue",
-          description: "Lanzamos y optimizamos continuamente para garantizar resultados excepcionales.",
+          title: "Despliega y mejora",
+          description: "Publica en web, chat o API y mejora con analíticas en vivo.",
         },
       ],
-      whyTitle: "¿Por qué elegir Kodata?",
+      whyTitle: "Una plataforma para equipos",
       whyCopy:
-        "Combinamos experiencia técnica con comprensión profunda del negocio para entregar soluciones de IA que generan valor real y medible desde el primer día.",
+        "Producto y operaciones pueden lanzar bots sobre sus propios datos sin depender de sprints de desarrollo. Seguridad, versionado y monitoreo incluidos.",
     },
     en: {
-      title: "Our",
-      accent: "Process",
-      subtitle: "A structured approach to turn your vision into reality",
+      title: "How the platform",
+      accent: "works",
+      subtitle: "Light up bots on your data without custom projects",
       steps: [
         {
-          icon: Search,
-          title: "Analysis",
-          description: "We study your business and data to spot AI opportunities.",
+          icon: Database,
+          title: "Connect your data",
+          description: "Plug SQL, documents, APIs, and CRMs into one place.",
         },
         {
-          icon: Lightbulb,
-          title: "Strategy",
-          description: "We design a tailored solution for your specific needs.",
+          icon: Layers,
+          title: "Design the agent",
+          description: "Pick templates or craft flows with instructions, actions, and tone.",
         },
         {
-          icon: Code,
-          title: "Development",
-          description: "We implement with best practices and cutting-edge tech.",
+          icon: ShieldCheck,
+          title: "Set guardrails",
+          description: "Permissions, audit trails, and limits keep your data safe.",
         },
         {
           icon: Rocket,
-          title: "Launch",
-          description: "We release and keep optimizing to deliver standout results.",
+          title: "Deploy and improve",
+          description: "Ship to web, chat, or API and iterate with live analytics.",
         },
       ],
-      whyTitle: "Why choose Kodata?",
+      whyTitle: "Built for teams",
       whyCopy:
-        "We pair technical expertise with business insight to deliver AI solutions that create real, measurable value from day one.",
+        "Product and ops teams can launch bots on their own data without waiting for dev sprints. Security, versioning, and monitoring come out of the box.",
     },
   } as const
 

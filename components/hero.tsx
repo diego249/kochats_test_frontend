@@ -10,31 +10,33 @@ export function Hero() {
 
   const copy = {
     es: {
-      badge: "Desarrollo de Software con IA",
-      headingPrefix: "Transformamos empresas en",
+      badge: "Plataforma de agentes IA",
+      headingPrefix: "Lanza tus propios",
+      headingHighlight: "bots conectados a tus datos",
       subtitle:
-        "Potenciamos tu negocio con soluciones de inteligencia artificial: agentes inteligentes, pronósticos precisos y análisis avanzado de datos.",
-      primaryCta: "Comenzar ahora",
-      secondaryCta: "Ver servicios",
+        "Crea y despliega agentes que entienden tu negocio. Conecta bases de datos y herramientas, define flujos y obtén respuestas accionables en minutos.",
+      primaryCta: "Crear un agente",
+      secondaryCta: "Ver cómo funciona",
       stats: [
-        { value: "99%", label: "Precisión" },
-        { value: "24/7", label: "Disponibilidad" },
-        { value: "10x", label: "Más rápido" },
-        { value: "100%", label: "Seguro" },
+        { value: "5 min", label: "para publicar" },
+        { value: "Integrado", label: "con tus datos" },
+        { value: "Control", label: "roles y guardrails" },
+        { value: "Omnicanal", label: "web, chat, API" },
       ],
     },
     en: {
-      badge: "AI-powered software development",
-      headingPrefix: "We transform companies into",
+      badge: "AI agent platform",
+      headingPrefix: "Launch your own",
+      headingHighlight: "bots on top of your data",
       subtitle:
-        "We supercharge your business with AI solutions: intelligent agents, accurate forecasting, and advanced data analytics.",
-      primaryCta: "Start now",
-      secondaryCta: "View services",
+        "Let your team build and ship agents that know your business. Connect databases and tools, design flows, and deliver actionable answers in minutes.",
+      primaryCta: "Start building",
+      secondaryCta: "See how it works",
       stats: [
-        { value: "99%", label: "Accuracy" },
-        { value: "24/7", label: "Availability" },
-        { value: "10x", label: "Faster" },
-        { value: "100%", label: "Secure" },
+        { value: "5 min", label: "to publish" },
+        { value: "Integrated", label: "with your data" },
+        { value: "Control", label: "roles and guardrails" },
+        { value: "Omnichannel", label: "web, chat, API" },
       ],
     },
   } as const
@@ -89,14 +91,14 @@ export function Hero() {
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-balance"
-          >
-            {t.headingPrefix}{" "}
-            <span className="bg-gradient-to-r from-primary via-purple-400 to-secondary bg-clip-text text-transparent">
-              Data Driven Companies
-            </span>
-          </motion.h1>
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-balance"
+        >
+          {t.headingPrefix}{" "}
+          <span className="bg-gradient-to-r from-primary via-purple-400 to-secondary bg-clip-text text-transparent">
+            {t.headingHighlight}
+          </span>
+        </motion.h1>
 
           {/* Subtitle */}
           <motion.p

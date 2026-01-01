@@ -10,42 +10,42 @@ export function ChatDemo() {
 
   const copy = {
     es: {
-      title: "Interacción",
-      accent: "en Tiempo Real",
-      subtitle: "Así es como tus agentes inteligentes interactúan con tu equipo",
+      title: "Agentes en",
+      accent: "tus datos",
+      subtitle: "Así interactúan tus bots conectados a bases de datos y herramientas",
       messages: [
         {
           type: "user",
-          message: "¿Cuál es el estado del inventario de productos electrónicos?",
+          message: "Conecta la base de datos de pedidos y la carpeta de manuales para el bot de soporte.",
         },
         {
           type: "bot",
           message:
-            "Actualmente tenemos 1,247 unidades en stock. Los productos más vendidos son laptops (342 unidades) y smartphones (589 unidades). Te recomiendo reabastecer tablets, quedan solo 45 unidades.",
+            "Listo, sincronizo Postgres y los PDFs. El agente citará las respuestas y limitará acciones a las tablas orders y customers.",
         },
         {
           type: "user",
-          message: "Genera un reporte de ventas del último trimestre",
+          message: "Activa alertas en Slack cuando un ticket se marque crítico y guarda el resumen en CRM.",
         },
       ],
     },
     en: {
-      title: "Real-time",
-      accent: "Interaction",
-      subtitle: "This is how your intelligent agents interact with your team",
+      title: "Agents on",
+      accent: "your data",
+      subtitle: "How bots behave when they are wired to your databases and tools",
       messages: [
         {
           type: "user",
-          message: "What is the status of the electronics inventory?",
+          message: "Connect the orders database and the manuals folder to the support bot.",
         },
         {
           type: "bot",
           message:
-            "We currently have 1,247 units in stock. Best sellers are laptops (342 units) and smartphones (589 units). I recommend restocking tablets; only 45 units remain.",
+            "Done. I synced Postgres and the PDFs. The agent will cite answers and restrict actions to the orders and customers tables.",
         },
         {
           type: "user",
-          message: "Generate a sales report for the last quarter",
+          message: "Trigger Slack alerts when a ticket is critical and store the summary in CRM.",
         },
       ],
     },

@@ -19,7 +19,7 @@ export function Header() {
       navItems: [
         { label: "Inicio", href: "/" },
         { label: "Agentes IA", href: "#agentes" },
-        { label: "Proceso", href: "#proceso" },
+        { label: "Plataforma", href: "#proceso" },
         { label: "Tecnología", href: "#tecnologia" },
       ],
       cta: "Login",
@@ -28,7 +28,7 @@ export function Header() {
       navItems: [
         { label: "Home", href: "/" },
         { label: "AI Agents", href: "#agentes" },
-        { label: "Process", href: "#proceso" },
+        { label: "Platform", href: "#proceso" },
         { label: "Technology", href: "#tecnologia" },
       ],
       cta: "Login",

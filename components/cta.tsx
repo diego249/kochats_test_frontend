@@ -10,18 +10,20 @@ export function CTA() {
 
   const copy = {
     es: {
-      title: "¿Listo para transformar tu empresa con",
-      accent: "Inteligencia Artificial?",
-      subtitle: "Contáctanos hoy y descubre cómo podemos ayudarte a convertirte en una verdadera Data Driven Company.",
-      cta: "Ir al login",
-      badges: ["Respuesta en 24h", "Consulta gratuita", "Sin compromiso"],
+      title: "¿Listo para lanzar bots en",
+      accent: "tus propios datos?",
+      subtitle:
+        "Construye, prueba y despliega agentes con el conocimiento de tu empresa en minutos. Sin proyectos a medida ni tiempos de espera.",
+      cta: "Comenzar ahora",
+      badges: ["Setup guiado", "Seguridad enterprise", "Sin compromiso"],
     },
     en: {
-      title: "Ready to transform your company with",
-      accent: "Artificial Intelligence?",
-      subtitle: "Reach out today and discover how we can help you become a true Data Driven Company.",
-      cta: "Go to login",
-      badges: ["Response within 24h", "Free consultation", "No commitment"],
+      title: "Ready to launch bots on",
+      accent: "your own data?",
+      subtitle:
+        "Build, test, and deploy agents powered by your company knowledge in minutes. No custom projects or long queues.",
+      cta: "Get started",
+      badges: ["Guided setup", "Enterprise security", "No commitment"],
     },
   } as const
 
