@@ -18,22 +18,22 @@ export function Header() {
     es: {
       navItems: [
         { label: "Inicio", href: "/" },
-        { label: "Agentes IA", href: "#agentes" },
-        { label: "Plataforma", href: "#proceso" },
+        { label: "Casos de uso", href: "#agentes" },
+        { label: "Cómo funciona", href: "#proceso" },
         { label: "Planes", href: "#pricing" },
         { label: "Tecnología", href: "#tecnologia" },
       ],
-      cta: "Login",
+      cta: "Probar gratis",
     },
     en: {
       navItems: [
         { label: "Home", href: "/" },
-        { label: "AI Agents", href: "#agentes" },
-        { label: "Platform", href: "#proceso" },
+        { label: "Use cases", href: "#agentes" },
+        { label: "How it works", href: "#proceso" },
         { label: "Pricing", href: "#pricing" },
         { label: "Technology", href: "#tecnologia" },
       ],
-      cta: "Login",
+      cta: "Try for free",
     },
   } as const
 
@@ -86,7 +86,7 @@ export function Header() {
             <LanguageToggle />
             <ThemeToggle />
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link href="/login">{t.cta}</Link>
+              <Link href="/register">{t.cta}</Link>
             </Button>
           </div>
 

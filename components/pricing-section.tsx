@@ -14,39 +14,40 @@ export function PricingSection() {
   const copy = {
     es: {
       badge: "Planes y precios",
-      heading: "Elige el plan que se ajusta a tu equipo",
-      subtitle: "Planes listos para empezar gratis y escalar cuando necesites más capacidad.",
+      heading: "Planes para empezar hoy y escalar con tu equipo",
+      subtitle: "Escala por capacidad (preguntas), usuarios y conexiones. Cambia de plan cuando necesites más volumen o más fuentes.",
       cta: "Crear cuenta",
-      contact: "Hablar con ventas",
+      contact: "Contactar",
       tableTitle: "Comparativa rápida",
       perMonth: "al mes",
-      highlight: "Mejor para crecer",
+      highlight: "Más popular",
       labels: {
         plan: "Plan",
         price: "Precio",
-        questions: "Preguntas",
+        questions: "Preguntas / mes",
         users: "Usuarios",
-        datasources: "Datasources",
+        datasources: "Conexiones",
       },
-      limitsNote: "Los límites se aplican automáticamente según el plan",
+      limitsNote: "Límites por plan (preguntas/usuarios/conexiones). Se aplican automáticamente.",
     },
     en: {
       badge: "Plans & Pricing",
-      heading: "Pick the plan that fits your team",
-      subtitle: "Start free and upgrade as you need more capacity and seats.",
+      heading: "Plans to start today and scale with your team",
+      subtitle:
+        "Scale by capacity (questions), users, and connections. Switch plans when you need more volume or more sources.",
       cta: "Create account",
-      contact: "Talk to sales",
+      contact: "Contact us",
       tableTitle: "Quick comparison",
       perMonth: "per month",
-      highlight: "Best to scale",
+      highlight: "Most popular",
       labels: {
         plan: "Plan",
         price: "Price",
-        questions: "Questions",
+        questions: "Questions / month",
         users: "Users",
-        datasources: "Datasources",
+        datasources: "Connections",
       },
-      limitsNote: "Limits are enforced automatically by plan",
+      limitsNote: "Plan limits (questions/users/connections). Usage-based and enforced automatically.",
     },
   } as const
 
@@ -89,7 +90,7 @@ export function PricingSection() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{tier.code}</p>
+                    <p className="text-xs font-medium text-muted-foreground">{tier.code}</p>
                     <h3 className="text-2xl font-semibold text-foreground">{tier.name}</h3>
                   </div>
                   {tier.code === "pro" && (
@@ -102,7 +103,7 @@ export function PricingSection() {
                   <span className="text-3xl font-bold text-foreground">{tier.price}</span>
                   {tier.price !== "Custom" && <span className="text-sm text-muted-foreground">{t.perMonth}</span>}
                 </div>
-                <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                <ul className="space-y-2 text-sm text-muted-foreground mb-4">
                   <li className="flex items-center gap-2">
                     <BadgeCheck className="w-4 h-4 text-primary" />
                     <span>{t.labels.questions}: {tier.questions}</span>
@@ -115,6 +116,16 @@ export function PricingSection() {
                     <BadgeCheck className="w-4 h-4 text-primary" />
                     <span>{t.labels.datasources}: {tier.datasources}</span>
                   </li>
+                  <li className="flex items-center gap-2">
+                    <BadgeCheck className="w-4 h-4 text-primary" />
+                    <span>
+                      {tier.code === "free" && "Demo dataset"}
+                      {tier.code === "starter" && "Connect 1 PostgreSQL"}
+                      {tier.code === "pro" && "Breakdowns + export"}
+                      {tier.code === "business" && "Drill-down + teams"}
+                      {tier.code === "enterprise" && "Custom rollout"}
+                    </span>
+                  </li>
                 </ul>
                 <Button
                   asChild
@@ -125,9 +136,11 @@ export function PricingSection() {
                     <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
-                <Button variant="ghost" asChild className="w-full mt-2 text-muted-foreground hover:text-foreground">
-                  <Link href="/billing">{t.contact}</Link>
-                </Button>
+                {["business", "enterprise"].includes(tier.code) && (
+                  <Button variant="ghost" asChild className="w-full mt-2 text-muted-foreground hover:text-foreground">
+                    <Link href="/billing">{t.contact}</Link>
+                  </Button>
+                )}
               </Card>
             </motion.div>
           ))}

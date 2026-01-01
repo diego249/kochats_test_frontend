@@ -11,30 +11,18 @@ export function Footer() {
     language === "es"
       ? {
           Servicios: [
-            { label: "Agentes Inteligentes", href: "#agentes" },
-            { label: "Forecast", href: "#agentes" },
-            { label: "Detección de Outliers", href: "#agentes" },
-            { label: "Clusterización", href: "#agentes" },
-            { label: "Planes", href: "#pricing" },
-          ],
-          Empresa: [
-            { label: "Proceso", href: "#proceso" },
-            { label: "Tecnología", href: "#tecnologia" },
+            { label: "Asistentes", href: "#agentes" },
+            { label: "Casos de uso", href: "#agentes" },
+            { label: "Cómo funciona", href: "#proceso" },
             { label: "Planes", href: "#pricing" },
             { label: "Contacto", href: "/login" },
           ],
         }
       : {
           Services: [
-            { label: "Intelligent Agents", href: "#agentes" },
-            { label: "Forecast", href: "#agentes" },
-            { label: "Outlier Detection", href: "#agentes" },
-            { label: "Clustering", href: "#agentes" },
-            { label: "Pricing", href: "#pricing" },
-          ],
-          Company: [
-            { label: "Process", href: "#proceso" },
-            { label: "Technology", href: "#tecnologia" },
+            { label: "Assistants", href: "#agentes" },
+            { label: "Use cases", href: "#agentes" },
+            { label: "How it works", href: "#proceso" },
             { label: "Pricing", href: "#pricing" },
             { label: "Contact", href: "/login" },
           ],
@@ -43,13 +31,13 @@ export function Footer() {
   const copy = {
     es: {
       description:
-        "Desarrollo de software con inteligencia artificial para empresas que quieren ser Data Driven Companies.",
+        "Plataforma para crear asistentes conectados a tus datos y herramientas.",
       privacy: "Privacidad",
       terms: "Términos",
       rights: "Todos los derechos reservados.",
     },
     en: {
-      description: "AI-powered software development for companies that want to become Data Driven.",
+      description: "Platform to build assistants connected to your data and tools.",
       privacy: "Privacy",
       terms: "Terms",
       rights: "All rights reserved.",

@@ -10,20 +10,20 @@ export function CTA() {
 
   const copy = {
     es: {
-      title: "¿Listo para lanzar bots en",
-      accent: "tus propios datos?",
+      title: "¿Listo para lanzar asistentes sobre tus datos?",
+      accent: "",
       subtitle:
-        "Construye, prueba y despliega agentes con el conocimiento de tu empresa en minutos. Sin proyectos a medida ni tiempos de espera.",
-      cta: "Comenzar ahora",
-      badges: ["Setup guiado", "Seguridad enterprise", "Sin compromiso"],
+        "Crea, prueba y despliega asistentes conectados a tu información. Empieza con un demo y conecta tu base cuando estés listo.",
+      cta: "Probar gratis",
+      badges: ["Setup guiado", "Control de permisos", "Sin compromiso"],
     },
     en: {
-      title: "Ready to launch bots on",
-      accent: "your own data?",
+      title: "Ready to launch assistants on your data?",
+      accent: "",
       subtitle:
-        "Build, test, and deploy agents powered by your company knowledge in minutes. No custom projects or long queues.",
-      cta: "Get started",
-      badges: ["Guided setup", "Enterprise security", "No commitment"],
+        "Build, test, and deploy assistants connected to your information. Start with a demo and connect your database when ready.",
+      cta: "Try free",
+      badges: ["Guided setup", "Permissions control", "No commitment"],
     },
   } as const
 
@@ -45,8 +45,13 @@ export function CTA() {
           className="max-w-4xl mx-auto text-center"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-balance">
-            {t.title}{" "}
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{t.accent}</span>
+            {t.title}
+            {t.accent && (
+              <>
+                {" "}
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{t.accent}</span>
+              </>
+            )}
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto text-balance leading-relaxed">
             {t.subtitle}
@@ -58,7 +63,7 @@ export function CTA() {
               asChild
               className="bg-primary hover:bg-primary/90 text-primary-foreground group text-lg px-8 py-6"
             >
-              <a href="/login" className="flex items-center gap-2">
+              <a href="/register" className="flex items-center gap-2">
                 <Mail size={20} />
                 {t.cta}
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />

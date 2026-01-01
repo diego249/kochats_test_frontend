@@ -10,33 +10,35 @@ export function Hero() {
 
   const copy = {
     es: {
-      badge: "Plataforma de agentes IA",
-      headingPrefix: "Lanza tus propios",
-      headingHighlight: "bots conectados a tus datos",
+      badge: "Plataforma para crear asistentes sobre tus datos",
+      headingPrefix: "Crea tus propios",
+      headingHighlight: "asistentes conectados a tus datos",
       subtitle:
-        "Crea y despliega agentes que entienden tu negocio. Conecta bases de datos y herramientas, define flujos y obtén respuestas accionables en minutos.",
-      primaryCta: "Crear un agente",
-      secondaryCta: "Ver cómo funciona",
+        "Conecta tu base de datos, define permisos y obtén respuestas verificables en segundos. Ideal para reporting, operaciones y soporte interno (y más).",
+      microcopy: 'Hoy: bases SQL (PostgreSQL). ¿Otra base? Contáctanos.',
+      primaryCta: "Probar gratis",
+      secondaryCta: "Ver demo",
       stats: [
-        { value: "5 min", label: "para publicar" },
-        { value: "Integrado", label: "con tus datos" },
-        { value: "Control", label: "roles y guardrails" },
-        { value: "Omnicanal", label: "web, chat, API" },
+        { value: "Conecta datos", label: "en minutos" },
+        { value: "Evidencia", label: "respuestas trazables" },
+        { value: "Guardrails", label: "permisos y límites" },
+        { value: "Templates", label: "casos de uso" },
       ],
     },
     en: {
-      badge: "AI agent platform",
-      headingPrefix: "Launch your own",
-      headingHighlight: "bots on top of your data",
+      badge: "Platform to build assistants on your data",
+      headingPrefix: "Build",
+      headingHighlight: "assistants on top of your data",
       subtitle:
-        "Let your team build and ship agents that know your business. Connect databases and tools, design flows, and deliver actionable answers in minutes.",
-      primaryCta: "Start building",
-      secondaryCta: "See how it works",
+        "Connect your database, set permissions, and get verifiable answers in seconds. Great for reporting, ops, and internal support.",
+      microcopy: "Today: SQL databases (PostgreSQL). Need another DB? Contact us.",
+      primaryCta: "Try free",
+      secondaryCta: "See demo",
       stats: [
-        { value: "5 min", label: "to publish" },
-        { value: "Integrated", label: "with your data" },
-        { value: "Control", label: "roles and guardrails" },
-        { value: "Omnichannel", label: "web, chat, API" },
+        { value: "Connect data", label: "in minutes" },
+        { value: "Evidence", label: "traceable answers" },
+        { value: "Guardrails", label: "permissions & limits" },
+        { value: "Templates", label: "use cases" },
       ],
     },
   } as const
@@ -105,9 +107,17 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto text-balance leading-relaxed"
+            className="text-lg sm:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto text-balance leading-relaxed"
           >
             {t.subtitle}
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+            className="text-sm text-muted-foreground mb-10"
+          >
+            {t.microcopy}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -118,7 +128,7 @@ export function Hero() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground group">
-              <a href="/login" className="flex items-center gap-2">
+              <a href="/register" className="flex items-center gap-2">
                 {t.primaryCta}
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </a>

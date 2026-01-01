@@ -1,22 +1,16 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { ShieldCheck, Database, ListChecks, Gauge, Eye, Lock } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useLanguage } from "@/components/language-provider"
 
-const technologies = [
-  { name: "Python", category: "Backend" },
-  { name: "TensorFlow", category: "ML" },
-  { name: "PyTorch", category: "ML" },
-  { name: "Scikit-learn", category: "ML" },
-  { name: "FastAPI", category: "Backend" },
-  { name: "PostgreSQL", category: "Database" },
-  { name: "Docker", category: "DevOps" },
-  { name: "Kubernetes", category: "DevOps" },
-  { name: "AWS", category: "Cloud" },
-  { name: "Azure", category: "Cloud" },
-  { name: "React", category: "Frontend" },
-  { name: "Next.js", category: "Frontend" },
+const items = [
+  { icon: Database, key: "readOnly" },
+  { icon: ListChecks, key: "allowlist" },
+  { icon: Gauge, key: "limits" },
+  { icon: Eye, key: "audit" },
+  { icon: Lock, key: "privacy" },
 ]
 
 export function TechStack() {
@@ -24,33 +18,44 @@ export function TechStack() {
 
   const copy = {
     es: {
-      title: "Tecnologías de",
-      accent: "Vanguardia",
-      subtitle: "Utilizamos las mejores herramientas y frameworks para construir soluciones robustas y escalables",
-      note:
-        "Nuestro stack tecnológico está en constante evolución para incorporar las últimas innovaciones en inteligencia artificial y desarrollo de software.",
+      title: "Seguridad y",
+      accent: "control",
+      subtitle: "Hoy soportamos PostgreSQL. Más conectores en camino.",
+      note: "Tus datos nunca se usan para entrenar modelos. Guardrails y auditoría para cada consulta.",
+      bullets: {
+        readOnly: "Conexiones de solo lectura",
+        allowlist: "Allowlist por tablas y columnas",
+        limits: "Límites de consulta configurables",
+        audit: "Audit logs (Pro+)",
+        privacy: "Datos no se usan para entrenar modelos",
+      },
     },
     en: {
-      title: "Cutting-edge",
-      accent: "Technologies",
-      subtitle: "We use the best tools and frameworks to build robust, scalable solutions",
-      note:
-        "Our tech stack evolves constantly to adopt the latest innovations in AI and software development.",
+      title: "Security &",
+      accent: "control",
+      subtitle: "Today we support PostgreSQL. More connectors coming soon.",
+      note: "Your data is never used to train models. Guardrails and audit for every query.",
+      bullets: {
+        readOnly: "Read-only connections",
+        allowlist: "Table/column allowlist",
+        limits: "Configurable query limits",
+        audit: "Audit logs (Pro+)",
+        privacy: "Data not used to train models",
+      },
     },
   } as const
 
   const t = copy[language]
 
   return (
-    <section id="tecnologia" className="py-20 md:py-32">
+    <section id="tecnologia" className="py-20 md:py-32 bg-muted/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-balance">
             {t.title}{" "}
@@ -61,49 +66,35 @@ export function TechStack() {
           </p>
         </motion.div>
 
-        {/* Tech Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <Card className="p-8 md:p-12 bg-card border-border">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-              {technologies.map((tech, index) => (
+        <Card className="p-8 md:p-12 bg-card border-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((item, idx) => {
+              const Icon = item.icon
+              return (
                 <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
+                  key={item.key}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="flex flex-col items-center justify-center p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors group"
+                  transition={{ duration: 0.5, delay: idx * 0.05 }}
+                  className="flex items-start gap-4 p-4 rounded-xl bg-muted/40 border border-border/40"
                 >
-                  <div className="text-center">
-                    <div className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
-                      {tech.name}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{tech.category}</div>
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="text-sm text-foreground">
+                    <div className="font-semibold">{t.bullets[item.key as keyof typeof t.bullets]}</div>
                   </div>
                 </motion.div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
+              )
+            })}
+          </div>
 
-        {/* Additional Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-12 text-center"
-        >
-          <p className="text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            {t.note}
-          </p>
-        </motion.div>
+          <div className="mt-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <ShieldCheck className="w-4 h-4 text-primary" />
+            <span>{t.note}</span>
+          </div>
+        </Card>
       </div>
     </section>
   )

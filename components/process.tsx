@@ -12,62 +12,60 @@ export function Process() {
     es: {
       title: "Cómo funciona",
       accent: "la plataforma",
-      subtitle: "Enciende bots sobre tus datos sin proyectos a medida",
+      subtitle: "Enciende asistentes sobre tus datos sin proyectos a medida",
       steps: [
         {
           icon: Database,
-          title: "Conecta tus datos",
-          description: "Integra bases SQL, documentos, APIs y CRM en un solo lugar.",
+          title: "Conecta datos (SQL)",
+          description: "Acceso read-only y allowlist de tablas y columnas.",
         },
         {
           icon: Layers,
-          title: "Diseña el agente",
-          description: "Elige plantillas o crea flujos con instrucciones, acciones y tono.",
+          title: "Define instrucciones y plantillas",
+          description: "Plantillas listas para preguntas de negocio.",
         },
         {
           icon: ShieldCheck,
-          title: "Define guardrails",
-          description: "Permisos, auditoría y límites para proteger tu información.",
+          title: "Permisos, límites y auditoría",
+          description: "Guardrails de SQL seguro con registros.",
         },
         {
           icon: Rocket,
           title: "Despliega y mejora",
-          description: "Publica en web, chat o API y mejora con analíticas en vivo.",
+          description: "Úsalo con tu equipo y mejora con métricas.",
         },
       ],
-      whyTitle: "Una plataforma para equipos",
-      whyCopy:
-        "Producto y operaciones pueden lanzar bots sobre sus propios datos sin depender de sprints de desarrollo. Seguridad, versionado y monitoreo incluidos.",
+      whyTitle: "Hecho para equipos que necesitan respuestas rápidas",
+      whyCopy: "Crea asistentes sobre tus propios datos, con control y trazabilidad.",
     },
     en: {
       title: "How the platform",
       accent: "works",
-      subtitle: "Light up bots on your data without custom projects",
+      subtitle: "Light up assistants on your data without custom projects",
       steps: [
         {
           icon: Database,
-          title: "Connect your data",
-          description: "Plug SQL, documents, APIs, and CRMs into one place.",
+          title: "Connect data (SQL)",
+          description: "Read-only access with table/column allowlist.",
         },
         {
           icon: Layers,
-          title: "Design the agent",
-          description: "Pick templates or craft flows with instructions, actions, and tone.",
+          title: "Define instructions and templates",
+          description: "Ready-made templates for business questions.",
         },
         {
           icon: ShieldCheck,
-          title: "Set guardrails",
-          description: "Permissions, audit trails, and limits keep your data safe.",
+          title: "Permissions, limits, audit",
+          description: "SQL guardrails with audit logging.",
         },
         {
           icon: Rocket,
           title: "Deploy and improve",
-          description: "Ship to web, chat, or API and iterate with live analytics.",
+          description: "Use with your team and iterate with metrics.",
         },
       ],
-      whyTitle: "Built for teams",
-      whyCopy:
-        "Product and ops teams can launch bots on their own data without waiting for dev sprints. Security, versioning, and monitoring come out of the box.",
+      whyTitle: "Built for teams that need fast answers",
+      whyCopy: "Build assistants on your own data with control and traceability.",
     },
   } as const
 

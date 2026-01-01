@@ -10,42 +10,42 @@ export function ChatDemo() {
 
   const copy = {
     es: {
-      title: "Agentes en",
-      accent: "tus datos",
-      subtitle: "Así interactúan tus bots conectados a bases de datos y herramientas",
+      title: "Demo de",
+      accent: "asistente",
+      subtitle: "Preguntas a tu base de datos en lenguaje natural",
       messages: [
         {
           type: "user",
-          message: "Conecta la base de datos de pedidos y la carpeta de manuales para el bot de soporte.",
+          message: "¿Cuánto facturamos este mes y cómo se compara con el mes pasado?",
         },
         {
           type: "bot",
           message:
-            "Listo, sincronizo Postgres y los PDFs. El agente citará las respuestas y limitará acciones a las tablas orders y customers.",
+            "Total: 128,430. Variación vs mes pasado: +7.2%. Principales drivers: categoría A, tienda B. ¿Querés un breakdown?",
         },
         {
           type: "user",
-          message: "Activa alertas en Slack cuando un ticket se marque crítico y guarda el resumen en CRM.",
+          message: "¿Hay pedidos pendientes con pagos parciales?",
         },
       ],
     },
     en: {
-      title: "Agents on",
-      accent: "your data",
-      subtitle: "How bots behave when they are wired to your databases and tools",
+      title: "Assistant",
+      accent: "demo",
+      subtitle: "Ask your database in plain language",
       messages: [
         {
           type: "user",
-          message: "Connect the orders database and the manuals folder to the support bot.",
+          message: "How much did we bill this month and how does it compare to last month?",
         },
         {
           type: "bot",
           message:
-            "Done. I synced Postgres and the PDFs. The agent will cite answers and restrict actions to the orders and customers tables.",
+            "Total: 128,430. Change vs last month: +7.2%. Main drivers: category A, store B. Want a breakdown?",
         },
         {
           type: "user",
-          message: "Trigger Slack alerts when a ticket is critical and store the summary in CRM.",
+          message: "Are there orders with partial payments pending?",
         },
       ],
     },
