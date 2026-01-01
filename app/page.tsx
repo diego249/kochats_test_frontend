@@ -5,6 +5,7 @@ import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { Hero } from "@/components/hero"
 import { Process } from "@/components/process"
+import { PricingSection } from "@/components/pricing-section"
 import { TechStack } from "@/components/tech-stack"
 
 export default function HomePage() {
@@ -16,6 +17,7 @@ export default function HomePage() {
       <ChatDemo />
       <Process />
       <TechStack />
+      <PricingSection />
       <CTA />
       <Footer />
     </main>

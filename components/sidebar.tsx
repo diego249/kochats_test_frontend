@@ -13,6 +13,7 @@ import {
   HelpCircle,
   Users,
   ChevronLeft,
+  CreditCard,
 } from "lucide-react"
 import { logout } from "@/lib/api"
 import { clearAuthToken, clearAuthUser, getAuthUser } from "@/lib/auth"
@@ -33,6 +34,7 @@ export function Sidebar() {
       datasources: "Fuentes de datos",
       bots: "Bots",
       team: "Equipo",
+      billing: "Planes y facturación",
       help: "Seguridad y protección de datos",
       expand: "Expandir menú lateral",
       collapse: "Contraer menú lateral",
@@ -44,6 +46,7 @@ export function Sidebar() {
       datasources: "Data Sources",
       bots: "Bots",
       team: "Team",
+      billing: "Billing",
       help: "Security & Data Protection",
       expand: "Expand sidebar",
       collapse: "Collapse sidebar",
@@ -79,7 +82,11 @@ export function Sidebar() {
 
   const menuItems =
     authUser?.isOrgOwner
-      ? [...baseMenuItems, { href: "/team", label: t.team, icon: Users }]
+      ? [
+          ...baseMenuItems,
+          { href: "/team", label: t.team, icon: Users },
+          { href: "/billing", label: t.billing, icon: CreditCard },
+        ]
       : baseMenuItems
 
   const helpItems = [{ href: "/help/security", label: t.help, icon: HelpCircle }]

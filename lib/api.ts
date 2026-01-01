@@ -6,11 +6,13 @@ type RequestInit = {
   method?: string
   headers?: Record<string, string>
   body?: string
+  skipAuthRedirect?: boolean
 }
 
 export async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${getApiUrl()}${endpoint}`
   const token = getAuthToken()
+  const { skipAuthRedirect, ...fetchOptions } = options
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -22,12 +24,12 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
   }
 
   const response = await fetch(url, {
-    ...options,
+    ...fetchOptions,
     headers,
   })
 
   if (response.status === 401) {
-    if (typeof window !== "undefined") {
+    if (!skipAuthRedirect && typeof window !== "undefined") {
       localStorage.removeItem("authToken")
       localStorage.removeItem("authUser")
       window.location.href = "/login"
@@ -74,10 +76,15 @@ export async function login(username: string, password: string) {
   return data
 }
 
-export async function register(email: string, username: string, password: string) {
+export async function register(email: string, username: string, password: string, planCode?: string) {
   const data = await apiCall<any>("/api/auth/register/", {
     method: "POST",
-    body: JSON.stringify({ email, username, password }),
+    body: JSON.stringify({
+      email,
+      username,
+      password,
+      ...(planCode ? { plan_code: planCode } : {}),
+    }),
   })
 
   const authUser: AuthUser = {
@@ -88,7 +95,7 @@ export async function register(email: string, username: string, password: string
     organizationId: data.organization?.id ?? null,
     organizationName: data.organization?.name ?? null,
     isOrgOwner: !!data.is_org_owner,
-    plan: data.plan ?? null,
+    plan: data.plan ?? data.plan_code ?? null,
   }
 
   setAuthToken(authUser.token)
@@ -268,5 +275,63 @@ export function updateOrgUser(
 export function deleteOrgUser(userId: number) {
   return apiCall(`/api/auth/org/users/${userId}/`, {
     method: "DELETE",
+  })
+}
+
+// =========================
+// Billing endpoints
+// =========================
+
+export type PlanEntitlements = {
+  max_questions_per_month?: number | null
+  max_users?: number | null
+  max_datasources?: number | null
+  feature_flags?: Record<string, boolean>
+}
+
+export type Plan = {
+  code: string
+  name: string
+  description?: string
+  is_active: boolean
+  entitlements?: PlanEntitlements | null
+  plan_snapshot?: {
+    entitlements?: PlanEntitlements | null
+    code?: string
+    name?: string
+  }
+}
+
+export type PlanSnapshot = {
+  code?: string
+  name?: string
+  description?: string
+  entitlements?: PlanEntitlements | null
+}
+
+export type Subscription = {
+  plan: Plan
+  status: string
+  started_at?: string
+  ends_at?: string | null
+  plan_snapshot?: PlanSnapshot
+  entitlements?: PlanEntitlements | null
+}
+
+export function listPlans(includeInactive = false, options?: { skipAuthRedirect?: boolean }) {
+  const query = includeInactive ? "?include_inactive=1" : ""
+  return apiCall<Plan[]>(`/api/billing/plans/${query}`, {
+    skipAuthRedirect: options?.skipAuthRedirect,
+  })
+}
+
+export function getSubscription() {
+  return apiCall<Subscription>("/api/billing/subscription/")
+}
+
+export function updateSubscription(planCode: string) {
+  return apiCall<Subscription>("/api/billing/subscription/", {
+    method: "PUT",
+    body: JSON.stringify({ plan_code: planCode }),
   })
 }

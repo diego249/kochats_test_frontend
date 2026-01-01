@@ -3,21 +3,39 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useMemo } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { setAuthToken, setAuthUser } from "@/lib/auth"
-import { register as apiRegister } from "@/lib/api"
-import { Lock, Mail, User, Eye, EyeOff, ChevronRight } from "lucide-react"
+import { listPlans, register as apiRegister, type Plan } from "@/lib/api"
+import { Lock, Mail, User, Eye, EyeOff, ChevronRight, Sparkles, BadgeCheck } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
 import { useLanguage } from "@/components/language-provider"
+import { defaultPlanCode, planCatalog, planCatalogMap } from "@/lib/plan-catalog"
+
+type PlanDisplay = {
+  code: string
+  name: string
+  price: string
+  questions: string
+  users: string
+  datasources: string
+  isActive: boolean
+}
+
+const catalogPlansDisplay: PlanDisplay[] = planCatalog.map((plan) => ({
+  ...plan,
+  isActive: true,
+}))
 
 export default function RegisterPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { language } = useLanguage()
   const [email, setEmail] = useState("")
   const [username, setUsername] = useState("")
@@ -25,6 +43,10 @@ export default function RegisterPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [plans, setPlans] = useState<PlanDisplay[]>(catalogPlansDisplay)
+  const [selectedPlan, setSelectedPlan] = useState<string>(searchParams.get("plan") || defaultPlanCode)
+  const [plansLoading, setPlansLoading] = useState(true)
+  const [plansError, setPlansError] = useState<string | null>(null)
 
   const copy = {
     es: {
@@ -47,6 +69,16 @@ export default function RegisterPage() {
       socialMicrosoft: "Continuar con Microsoft",
       terms: "Términos de uso",
       privacy: "Política de privacidad",
+      planLabel: "Selecciona tu plan",
+      planHint: "Puedes cambiarlo luego dentro de la app.",
+      planError: "No pudimos cargar los planes. Usa Free o intenta nuevamente.",
+      planLoading: "Cargando planes...",
+      selected: "Seleccionado",
+      limits: {
+        questions: "Preguntas",
+        users: "Usuarios",
+        datasources: "Datasources",
+      },
     },
     en: {
       title: "Create your account",
@@ -68,10 +100,81 @@ export default function RegisterPage() {
       socialMicrosoft: "Continue with Microsoft",
       terms: "Terms of use",
       privacy: "Privacy policy",
+      planLabel: "Choose your plan",
+      planHint: "You can change it later from the app.",
+      planError: "We couldn't load plans. Pick Free or try again.",
+      planLoading: "Loading plans...",
+      selected: "Selected",
+      limits: {
+        questions: "Questions",
+        users: "Users",
+        datasources: "Datasources",
+      },
     },
   } as const
 
   const t = copy[language]
+
+  const sortedPlans = useMemo(() => {
+    const catalogOrder = planCatalog.map((p) => p.code)
+    return [...plans].sort((a, b) => catalogOrder.indexOf(a.code) - catalogOrder.indexOf(b.code))
+  }, [plans])
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      setPlansLoading(true)
+      setPlansError(null)
+      try {
+        const data = await listPlans(false, { skipAuthRedirect: true })
+        const activePlans = (data || []).filter((plan) => plan.is_active !== false)
+
+        const formatLimit = (value: number | null | undefined, fallback: string) => {
+          const unlimitedLabel = language === "es" ? "Ilimitado" : "Unlimited"
+          if (value === null) return unlimitedLabel
+          if (typeof value === "number") return value.toLocaleString()
+          return fallback || unlimitedLabel
+        }
+
+        const merged: PlanDisplay[] =
+          activePlans.length > 0
+            ? activePlans.map((plan: Plan) => {
+                const fallback = planCatalogMap[plan.code]
+                const entitlements = plan.entitlements || plan.plan_snapshot?.entitlements
+                return {
+                  code: plan.code,
+                  name: plan.name || fallback?.name || plan.code,
+                  price: fallback?.price || "Custom",
+                  questions: formatLimit(entitlements?.max_questions_per_month, fallback?.questions || "Custom"),
+                  users: formatLimit(entitlements?.max_users, fallback?.users || "Custom"),
+                  datasources: formatLimit(entitlements?.max_datasources, fallback?.datasources || "Custom"),
+                  isActive: plan.is_active !== false,
+                }
+              })
+            : catalogPlansDisplay
+
+        setPlans(merged)
+
+        const planParam = searchParams.get("plan")
+        setSelectedPlan((prev) => {
+          if (planParam && merged.some((p) => p.code === planParam)) {
+            return planParam
+          }
+          if (!merged.some((p) => p.code === prev)) {
+            return defaultPlanCode
+          }
+          return prev
+        })
+      } catch (err: any) {
+        console.error("Error loading plans:", err)
+        setPlans(catalogPlansDisplay)
+        setPlansError(t.planError)
+      } finally {
+        setPlansLoading(false)
+      }
+    }
+
+    fetchPlans()
+  }, [searchParams, language])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,7 +182,7 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const response = await apiRegister(email, username, password)
+      const response = await apiRegister(email, username, password, selectedPlan || undefined)
       setAuthToken(response.token)
       setAuthUser({
         token: response.token,
@@ -191,10 +294,78 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            <div className="space-y-2 text-left">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                  <Sparkles className="w-3 h-3 text-primary" />
+                  {t.planLabel}
+                </Label>
+                <span className="text-[11px] text-muted-foreground">{t.planHint}</span>
+              </div>
+              {plansError && (
+                <Alert variant="destructive" className="border-destructive/50 bg-destructive/5">
+                  <AlertDescription>{plansError}</AlertDescription>
+                </Alert>
+              )}
+              {plansLoading && <p className="text-xs text-muted-foreground">{t.planLoading}</p>}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {plansLoading
+                  ? Array.from({ length: 2 }).map((_, idx) => (
+                      <div
+                        key={idx}
+                        className="h-20 rounded-xl border border-border/60 bg-card/60 animate-pulse"
+                      />
+                    ))
+                  : sortedPlans.map((plan) => {
+                      const isSelected = plan.code === selectedPlan
+                      return (
+                        <button
+                          key={plan.code}
+                          type="button"
+                          onClick={() => setSelectedPlan(plan.code)}
+                          className={`text-left p-4 rounded-xl border transition-all duration-200 ${
+                            isSelected
+                              ? "border-primary/60 bg-primary/10 shadow-sm shadow-primary/20"
+                              : "border-border/60 bg-card/60 hover:border-primary/40"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                                {plan.code}
+                              </p>
+                              <p className="text-base font-semibold text-foreground">{plan.name}</p>
+                            </div>
+                            <div className="flex flex-col items-end text-sm text-muted-foreground">
+                              <span className="font-semibold text-foreground">{plan.price}</span>
+                              {isSelected && (
+                                <span className="inline-flex items-center gap-1 text-xs text-primary">
+                                  <BadgeCheck className="w-3 h-3" /> {t.selected}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="mt-3 grid grid-cols-3 gap-2 text-[11px] text-muted-foreground">
+                            <span>
+                              {t.limits.questions}: <span className="text-foreground">{plan.questions}</span>
+                            </span>
+                            <span>
+                              {t.limits.users}: <span className="text-foreground">{plan.users}</span>
+                            </span>
+                            <span>
+                              {t.limits.datasources}: <span className="text-foreground">{plan.datasources}</span>
+                            </span>
+                          </div>
+                        </button>
+                      )
+                    })}
+              </div>
+            </div>
+
             <Button
               type="submit"
               className="w-full h-12 rounded-full text-base font-semibold shadow-sm hover:shadow-primary/15 transition-all duration-200"
-              disabled={loading}
+              disabled={loading || plansLoading}
             >
               {loading ? t.submitLoading : t.submitIdle}
             </Button>

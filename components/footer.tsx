@@ -15,10 +15,12 @@ export function Footer() {
             { label: "Forecast", href: "#agentes" },
             { label: "Detección de Outliers", href: "#agentes" },
             { label: "Clusterización", href: "#agentes" },
+            { label: "Planes", href: "#pricing" },
           ],
           Empresa: [
             { label: "Proceso", href: "#proceso" },
             { label: "Tecnología", href: "#tecnologia" },
+            { label: "Planes", href: "#pricing" },
             { label: "Contacto", href: "/login" },
           ],
         }
@@ -28,10 +30,12 @@ export function Footer() {
             { label: "Forecast", href: "#agentes" },
             { label: "Outlier Detection", href: "#agentes" },
             { label: "Clustering", href: "#agentes" },
+            { label: "Pricing", href: "#pricing" },
           ],
           Company: [
             { label: "Process", href: "#proceso" },
             { label: "Technology", href: "#tecnologia" },
+            { label: "Pricing", href: "#pricing" },
             { label: "Contact", href: "/login" },
           ],
         }
