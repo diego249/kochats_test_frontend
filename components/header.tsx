@@ -64,7 +64,7 @@ export function Header() {
               href="/"
               className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
             >
-              Kodata
+              Kochats
             </Link>
           </motion.div>
 
