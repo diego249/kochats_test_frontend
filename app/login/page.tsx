@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { setAuthToken, setAuthUser } from "@/lib/auth"
 import { login as apiLogin } from "@/lib/api"
 import { Lock, Mail, Eye, EyeOff, ChevronRight } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -75,18 +74,8 @@ export default function LoginPage() {
 
     try {
       const response = await apiLogin(username, password)
-      setAuthToken(response.token)
-      setAuthUser({
-        token: response.token,
-        username: response.username,
-        email: response.email,
-        userType: response.user_type,
-        organizationId: response.organization.id,
-        organizationName: response.organization.name,
-        isOrgOwner: response.is_org_owner,
-        plan: response.plan,
-      })
-      router.push("/dashboard")
+      const redirect = response.email_verified === false ? "/verify-email" : "/dashboard"
+      router.push(redirect)
     } catch (err: any) {
       setError(err.message || "Login failed. Please try again.")
     } finally {

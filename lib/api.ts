@@ -1,6 +1,17 @@
 // lib/api.ts
 
-import { getAuthToken, getApiUrl, setAuthToken, setAuthUser, type AuthUser } from "./auth"
+import { getAuthToken, getApiUrl, setAuthToken, setAuthUser, updateAuthUser, type AuthUser } from "./auth"
+
+export class ApiError extends Error {
+  status: number
+  data?: any
+
+  constructor(message: string, status: number, data?: any) {
+    super(message)
+    this.status = status
+    this.data = data
+  }
+}
 
 type RequestInit = {
   method?: string
@@ -32,18 +43,35 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
     if (!skipAuthRedirect && typeof window !== "undefined") {
       localStorage.removeItem("authToken")
       localStorage.removeItem("authUser")
+      localStorage.removeItem("pendingVerificationPath")
       window.location.href = "/login"
     }
-    throw new Error("Unauthorized")
-  }
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || error.message || `API error: ${response.status}`)
+    throw new ApiError("Unauthorized", 401)
   }
 
   if (response.status === 204) {
     return {} as T
+  }
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    const detail = error.detail || error.message || `API error: ${response.status}`
+
+    if (
+      response.status === 403 &&
+      detail === "Debes verificar tu email para realizar esta acción." &&
+      typeof window !== "undefined"
+    ) {
+      try {
+        const pendingPath = `${window.location.pathname}${window.location.search}`
+        localStorage.setItem("pendingVerificationPath", pendingPath)
+      } catch (err) {
+        console.error("Failed to persist pending verification path", err)
+      }
+      window.location.href = "/verify-email"
+    }
+
+    throw new ApiError(detail, response.status, error)
   }
 
   return response.json()
@@ -68,6 +96,9 @@ export async function login(username: string, password: string) {
     organizationName: data.organization?.name ?? null,
     isOrgOwner: !!data.is_org_owner,
     plan: data.plan ?? null,
+    emailVerified: !!data.email_verified,
+    verificationRequired: !!data.verification_required,
+    emailVerifiedAt: data.email_verified_at ?? null,
   }
 
   setAuthToken(authUser.token)
@@ -96,6 +127,9 @@ export async function register(email: string, username: string, password: string
     organizationName: data.organization?.name ?? null,
     isOrgOwner: !!data.is_org_owner,
     plan: data.plan ?? data.plan_code ?? null,
+    emailVerified: !!data.email_verified,
+    verificationRequired: !!data.verification_required,
+    emailVerifiedAt: data.email_verified_at ?? null,
   }
 
   setAuthToken(authUser.token)
@@ -107,6 +141,20 @@ export async function register(email: string, username: string, password: string
 export function logout() {
   return apiCall("/api/auth/logout/", {
     method: "POST",
+  })
+}
+
+export function verifyEmail(email: string, code: string) {
+  return apiCall("/api/auth/verify-email/", {
+    method: "POST",
+    body: JSON.stringify({ email, code }),
+  })
+}
+
+export function resendVerification(email: string) {
+  return apiCall("/api/auth/resend-verification/", {
+    method: "POST",
+    body: JSON.stringify({ email }),
   })
 }
 
@@ -333,5 +381,23 @@ export function updateSubscription(planCode: string) {
   return apiCall<Subscription>("/api/billing/subscription/", {
     method: "PUT",
     body: JSON.stringify({ plan_code: planCode }),
+  })
+}
+
+// =========================
+// Account endpoints
+// =========================
+
+export function updateOwnerPassword(currentPassword: string, newPassword: string) {
+  return apiCall<{ token: string; email: string; username: string }>("/api/auth/org/owner/password/", {
+    method: "POST",
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword,
+    }),
+  }).then((data) => {
+    setAuthToken(data.token)
+    updateAuthUser({ token: data.token, email: data.email, username: data.username })
+    return data
   })
 }

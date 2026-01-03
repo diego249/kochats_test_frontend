@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { setAuthToken, setAuthUser } from "@/lib/auth"
 import { listPlans, register as apiRegister, type Plan } from "@/lib/api"
 import { Lock, Mail, User, Eye, EyeOff, ChevronRight, Sparkles, BadgeCheck } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -40,6 +39,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -57,6 +57,7 @@ export default function RegisterPage() {
       usernameLabel: "Usuario",
       usernamePlaceholder: "Escoge un usuario",
       passwordLabel: "Contraseña",
+      passwordConfirmLabel: "Confirma tu contraseña",
       showPassword: "Mostrar contraseña",
       hidePassword: "Ocultar contraseña",
       submitIdle: "Continuar",
@@ -79,6 +80,7 @@ export default function RegisterPage() {
         users: "Usuarios",
         datasources: "Datasources",
       },
+      mismatchPassword: "Las contraseñas no coinciden.",
     },
     en: {
       title: "Create your account",
@@ -88,6 +90,7 @@ export default function RegisterPage() {
       usernameLabel: "Username",
       usernamePlaceholder: "Choose a username",
       passwordLabel: "Password",
+      passwordConfirmLabel: "Confirm your password",
       showPassword: "Show password",
       hidePassword: "Hide password",
       submitIdle: "Continue",
@@ -110,6 +113,7 @@ export default function RegisterPage() {
         users: "Users",
         datasources: "Datasources",
       },
+      mismatchPassword: "Passwords do not match.",
     },
   } as const
 
@@ -181,20 +185,16 @@ export default function RegisterPage() {
     setError("")
     setLoading(true)
 
+    if (password !== confirmPassword) {
+      setError(t.mismatchPassword)
+      setLoading(false)
+      return
+    }
+
     try {
       const response = await apiRegister(email, username, password, selectedPlan || undefined)
-      setAuthToken(response.token)
-      setAuthUser({
-        token: response.token,
-        username: response.username,
-        email: response.email,
-        userType: response.user_type,
-        organizationId: response.organization.id,
-        organizationName: response.organization.name,
-        isOrgOwner: response.is_org_owner,
-        plan: response.plan,
-      })
-      router.push("/dashboard")
+      const requiresVerification = response.verification_required || response.email_verified === false
+      router.push(requiresVerification ? "/verify-email" : "/dashboard")
     } catch (err: any) {
       setError(err.message || "Registration failed. Please try again.")
     } finally {
@@ -278,6 +278,33 @@ export default function RegisterPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Crea una contraseña"
+                  required
+                  disabled={loading}
+                  className="h-12 rounded-full pl-11 pr-12 bg-card border-border focus-visible:ring-primary/30"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-2 inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  aria-label={showPassword ? t.hidePassword : t.showPassword}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-left">
+              <Label htmlFor="confirm-password" className="text-xs font-medium text-muted-foreground">
+                {t.passwordConfirmLabel}
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="confirm-password"
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Crea una contraseña"
                   required
                   disabled={loading}
