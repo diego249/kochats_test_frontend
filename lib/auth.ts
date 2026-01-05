@@ -10,6 +10,10 @@ export type AuthUser = {
   emailVerified: boolean
   verificationRequired?: boolean
   emailVerifiedAt?: string | null
+  mfaEnabled?: boolean
+  mfaPreferredMethod?: "totp" | "email" | null
+  mfaCompletedAt?: string | null
+  pendingEmail?: string | null
 }
 
 function normalizeAuthUser(user: any): AuthUser {
@@ -27,6 +31,11 @@ function normalizeAuthUser(user: any): AuthUser {
     verificationRequired:
       user?.verificationRequired ?? user?.verification_required ?? (emailVerified ? false : undefined),
     emailVerifiedAt: user?.emailVerifiedAt ?? user?.email_verified_at ?? null,
+    mfaEnabled: user?.mfaEnabled ?? user?.mfa_enabled ?? false,
+    mfaPreferredMethod:
+      user?.mfaPreferredMethod ?? user?.mfa_preferred_method ?? user?.preferred_method ?? null,
+    mfaCompletedAt: user?.mfaCompletedAt ?? user?.mfa_completed_at ?? null,
+    pendingEmail: user?.pendingEmail ?? user?.pending_email ?? null,
   }
 }
 

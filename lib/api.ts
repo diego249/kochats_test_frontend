@@ -20,6 +20,26 @@ type RequestInit = {
   skipAuthRedirect?: boolean
 }
 
+function mapSessionToAuthUser(data: any): AuthUser {
+  return {
+    token: data.token,
+    username: data.username,
+    email: data.email,
+    userType: data.user_type,
+    organizationId: data.organization?.id ?? data.organization_id ?? null,
+    organizationName: data.organization?.name ?? data.organization_name ?? null,
+    isOrgOwner: !!data.is_org_owner,
+    plan: data.plan ?? data.plan_code ?? null,
+    emailVerified: !!data.email_verified,
+    verificationRequired: data.verification_required ?? data.verificationRequired,
+    emailVerifiedAt: data.email_verified_at ?? data.emailVerifiedAt ?? null,
+    mfaEnabled: !!data.mfa_enabled,
+    mfaPreferredMethod: data.mfa_preferred_method ?? data.preferred_method ?? data.preferredMethod ?? null,
+    mfaCompletedAt: data.mfa_completed_at ?? null,
+    pendingEmail: data.pending_email ?? null,
+  }
+}
+
 export async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${getApiUrl()}${endpoint}`
   const token = getAuthToken()
@@ -30,7 +50,7 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
     ...options.headers,
   }
 
-  if (token) {
+  if (token && !headers["Authorization"]) {
     headers["Authorization"] = `Token ${token}`
   }
 
@@ -87,19 +107,11 @@ export async function login(username: string, password: string) {
     body: JSON.stringify({ username, password }),
   })
 
-  const authUser: AuthUser = {
-    token: data.token,
-    username: data.username,
-    email: data.email,
-    userType: data.user_type,
-    organizationId: data.organization?.id ?? null,
-    organizationName: data.organization?.name ?? null,
-    isOrgOwner: !!data.is_org_owner,
-    plan: data.plan ?? null,
-    emailVerified: !!data.email_verified,
-    verificationRequired: !!data.verification_required,
-    emailVerifiedAt: data.email_verified_at ?? null,
+  if (data?.mfa_required) {
+    return data
   }
+
+  const authUser: AuthUser = mapSessionToAuthUser(data)
 
   setAuthToken(authUser.token)
   setAuthUser(authUser)
@@ -118,19 +130,7 @@ export async function register(email: string, username: string, password: string
     }),
   })
 
-  const authUser: AuthUser = {
-    token: data.token,
-    username: data.username,
-    email: data.email,
-    userType: data.user_type,
-    organizationId: data.organization?.id ?? null,
-    organizationName: data.organization?.name ?? null,
-    isOrgOwner: !!data.is_org_owner,
-    plan: data.plan ?? data.plan_code ?? null,
-    emailVerified: !!data.email_verified,
-    verificationRequired: !!data.verification_required,
-    emailVerifiedAt: data.email_verified_at ?? null,
-  }
+  const authUser: AuthUser = mapSessionToAuthUser(data)
 
   setAuthToken(authUser.token)
   setAuthUser(authUser)
@@ -156,6 +156,135 @@ export function resendVerification(email: string) {
     method: "POST",
     body: JSON.stringify({ email }),
   })
+}
+
+// =========================
+// MFA endpoints
+// =========================
+
+export type MfaMethod = "totp" | "email" | "backup"
+
+export function startMfaTotpSetup() {
+  return apiCall<{ otpauth_url: string; issuer: string; account_name: string; secret: string }>(
+    "/api/auth/mfa/totp/start/",
+    {
+      method: "POST",
+    },
+  )
+}
+
+export function confirmMfaTotpSetup(code: string) {
+  return apiCall<{ status: string; backup_codes?: string[]; mfa_enabled?: boolean; mfa_preferred_method?: string }>(
+    "/api/auth/mfa/totp/confirm/",
+    {
+      method: "POST",
+      body: JSON.stringify({ code }),
+    },
+  ).then((data) => {
+    updateAuthUser({ mfaEnabled: true, mfaPreferredMethod: "totp" })
+    return data
+  })
+}
+
+export function sendMfaEmailCode(options?: { mfaToken?: string }) {
+  const headers: Record<string, string> = {}
+  if (options?.mfaToken) {
+    headers["Authorization"] = `Bearer ${options.mfaToken}`
+  }
+
+  return apiCall<{ detail?: string }>("/api/auth/mfa/email/send/", {
+    method: "POST",
+    headers,
+    skipAuthRedirect: !!options?.mfaToken,
+  })
+}
+
+export function regenerateBackupCodes(method: MfaMethod, code: string) {
+  return apiCall<{ backup_codes: string[]; mfa_enabled?: boolean; mfa_preferred_method?: string }>(
+    "/api/auth/mfa/backup/regenerate/",
+    {
+      method: "POST",
+      body: JSON.stringify({ method, code }),
+    },
+  ).then((data) => {
+    updateAuthUser({
+      mfaEnabled: data.mfa_enabled ?? true,
+      mfaPreferredMethod: data.mfa_preferred_method ?? "totp",
+    })
+    return data
+  })
+}
+
+export function disableMfa(method: MfaMethod, code: string) {
+  return apiCall<{ token?: string; mfa_enabled?: boolean; mfa_preferred_method?: string }>(
+    "/api/auth/mfa/disable/",
+    {
+      method: "POST",
+      body: JSON.stringify({ method, code }),
+    },
+  ).then((data) => {
+    if (data.token) {
+      setAuthToken(data.token)
+    }
+    updateAuthUser({
+      token: data.token,
+      mfaEnabled: false,
+      mfaPreferredMethod: null,
+    })
+    return data
+  })
+}
+
+export async function verifyMfaChallenge(
+  method: MfaMethod,
+  code: string,
+  options?: { mfaToken?: string },
+) {
+  const headers: Record<string, string> = {}
+  if (options?.mfaToken) {
+    headers["Authorization"] = `Bearer ${options.mfaToken}`
+  }
+
+  const data = await apiCall<any>("/api/auth/mfa/verify/", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ method, code }),
+    skipAuthRedirect: !!options?.mfaToken,
+  })
+
+  if (data?.token) {
+    const authUser = mapSessionToAuthUser(data)
+    setAuthToken(authUser.token)
+    setAuthUser(authUser)
+  }
+
+  return data
+}
+
+export function startEmailChange(newEmail: string, options?: { method?: MfaMethod; code?: string }) {
+  const payload: Record<string, any> = { new_email: newEmail }
+  if (options?.method) payload.method = options.method
+  if (options?.code) payload.code = options.code
+
+  return apiCall<{ detail: string }>("/api/auth/email/change/start/", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function verifyEmailChange(code: string) {
+  const data = await apiCall<any>("/api/auth/email/change/verify/", {
+    method: "POST",
+    body: JSON.stringify({ code }),
+  })
+
+  if (data?.token) {
+    const authUser = mapSessionToAuthUser(data)
+    setAuthToken(authUser.token)
+    setAuthUser(authUser)
+  }
+
+  return data
 }
 
 // =========================
@@ -388,13 +517,26 @@ export function updateSubscription(planCode: string) {
 // Account endpoints
 // =========================
 
-export function updateOwnerPassword(currentPassword: string, newPassword: string) {
+export function updateOwnerPassword(
+  currentPassword: string,
+  newPassword: string,
+  options?: { method?: MfaMethod; code?: string },
+) {
+  const payload: Record<string, any> = {
+    current_password: currentPassword,
+    new_password: newPassword,
+  }
+
+  if (options?.method) {
+    payload.method = options.method
+  }
+  if (options?.code) {
+    payload.code = options.code
+  }
+
   return apiCall<{ token: string; email: string; username: string }>("/api/auth/org/owner/password/", {
     method: "POST",
-    body: JSON.stringify({
-      current_password: currentPassword,
-      new_password: newPassword,
-    }),
+    body: JSON.stringify(payload),
   }).then((data) => {
     setAuthToken(data.token)
     updateAuthUser({ token: data.token, email: data.email, username: data.username })

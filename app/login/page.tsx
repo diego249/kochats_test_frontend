@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { login as apiLogin } from "@/lib/api"
-import { Lock, Mail, Eye, EyeOff, ChevronRight } from "lucide-react"
+import { login as apiLogin, sendMfaEmailCode, verifyMfaChallenge, type MfaMethod } from "@/lib/api"
+import { Lock, Mail, Eye, EyeOff, ChevronRight, ShieldCheck } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
 import { useLanguage } from "@/components/language-provider"
@@ -23,6 +23,15 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [mfaRequired, setMfaRequired] = useState(false)
+  const [mfaToken, setMfaToken] = useState("")
+  const [mfaMethods, setMfaMethods] = useState<MfaMethod[]>([])
+  const [selectedMethod, setSelectedMethod] = useState<MfaMethod>("totp")
+  const [mfaCode, setMfaCode] = useState("")
+  const [mfaError, setMfaError] = useState("")
+  const [mfaMessage, setMfaMessage] = useState("")
+  const [mfaLoading, setMfaLoading] = useState(false)
+  const [sendingEmailCode, setSendingEmailCode] = useState(false)
 
   const copy = {
     es: {
@@ -43,6 +52,14 @@ export default function LoginPage() {
       socialMicrosoft: "Continuar con Microsoft",
       terms: "Términos de uso",
       privacy: "Política de privacidad",
+      mfaTitle: "Necesitamos un segundo paso",
+      mfaSubtitle: "Ingresa el código de tu app, correo o uno de respaldo para continuar.",
+      mfaMethodLabel: "Método",
+      mfaCodeLabel: "Código MFA",
+      mfaSubmit: "Verificar y continuar",
+      mfaSendEmail: "Enviar código por correo",
+      mfaEmailSent: "Código enviado a tu correo.",
+      mfaError: "No pudimos verificar el código. Intenta nuevamente.",
     },
     en: {
       title: "Welcome back",
@@ -62,24 +79,86 @@ export default function LoginPage() {
       socialMicrosoft: "Continue with Microsoft",
       terms: "Terms of use",
       privacy: "Privacy policy",
+      mfaTitle: "A second step is required",
+      mfaSubtitle: "Enter the code from your authenticator, email, or a backup code.",
+      mfaMethodLabel: "Method",
+      mfaCodeLabel: "MFA code",
+      mfaSubmit: "Verify and continue",
+      mfaSendEmail: "Send email code",
+      mfaEmailSent: "Email code sent.",
+      mfaError: "We couldn't verify the code. Please try again.",
     },
   } as const
 
   const t = copy[language]
+  const mfaMethodLabels: Record<MfaMethod, string> = {
+    totp: language === "es" ? "App (TOTP)" : "App (TOTP)",
+    email: language === "es" ? "Correo" : "Email",
+    backup: language === "es" ? "Código de respaldo" : "Backup code",
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setMfaError("")
+    setMfaMessage("")
+    setMfaRequired(false)
+    setMfaToken("")
+    setMfaMethods([])
+    setSelectedMethod("totp")
+    setMfaCode("")
     setLoading(true)
 
     try {
       const response = await apiLogin(username, password)
+      if (response?.mfa_required) {
+        const availableMethods = (response.methods ?? ["totp", "email", "backup"]) as MfaMethod[]
+        setMfaRequired(true)
+        setMfaToken(response.mfa_token)
+        setMfaMethods(availableMethods)
+        setSelectedMethod((response.preferred_method as MfaMethod) ?? availableMethods[0] ?? "totp")
+        return
+      }
       const redirect = response.email_verified === false ? "/verify-email" : "/dashboard"
       router.push(redirect)
     } catch (err: any) {
       setError(err.message || "Login failed. Please try again.")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMfaError("")
+    setMfaMessage("")
+    if (!mfaToken) {
+      setMfaError(t.mfaError)
+      return
+    }
+    setMfaLoading(true)
+    try {
+      const response = await verifyMfaChallenge(selectedMethod, mfaCode, { mfaToken })
+      const redirect = response.email_verified === false ? "/verify-email" : "/dashboard"
+      router.push(redirect)
+    } catch (err: any) {
+      setMfaError(err.message || t.mfaError)
+    } finally {
+      setMfaLoading(false)
+    }
+  }
+
+  const handleSendMfaEmail = async () => {
+    setMfaError("")
+    setMfaMessage("")
+    setSendingEmailCode(true)
+    try {
+      await sendMfaEmailCode({ mfaToken })
+      setMfaMessage(t.mfaEmailSent)
+    } catch (err: any) {
+      setMfaError(err.message || t.mfaError)
+    } finally {
+      setSendingEmailCode(false)
     }
   }
 
@@ -164,6 +243,78 @@ export default function LoginPage() {
               {loading ? t.submitLoading : t.submitIdle}
             </Button>
           </form>
+
+          {mfaRequired && (
+            <div className="rounded-2xl border border-border/80 bg-muted/40 p-4 text-left space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{t.mfaTitle}</p>
+                  <p className="text-xs text-muted-foreground">{t.mfaSubtitle}</p>
+                </div>
+              </div>
+              {mfaError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{mfaError}</AlertDescription>
+                </Alert>
+              )}
+              {mfaMessage && (
+                <Alert className="border-green-200 bg-green-50 text-green-800">
+                  <AlertDescription>{mfaMessage}</AlertDescription>
+                </Alert>
+              )}
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">{t.mfaMethodLabel}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {(mfaMethods.length ? mfaMethods : (["totp", "email", "backup"] as MfaMethod[])).map(
+                    (method) => (
+                      <Button
+                        key={method}
+                        type="button"
+                        size="sm"
+                        variant={selectedMethod === method ? "default" : "outline"}
+                        onClick={() => setSelectedMethod(method)}
+                      >
+                        {mfaMethodLabels[method]}
+                      </Button>
+                    ),
+                  )}
+                </div>
+              </div>
+              <form className="space-y-2" onSubmit={handleMfaSubmit}>
+                <Label htmlFor="mfa-code" className="text-xs text-muted-foreground">
+                  {t.mfaCodeLabel}
+                </Label>
+                <Input
+                  id="mfa-code"
+                  type="text"
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={10}
+                  disabled={mfaLoading}
+                  required
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleSendMfaEmail}
+                    disabled={sendingEmailCode || !mfaToken}
+                  >
+                    {sendingEmailCode ? t.submitLoading : t.mfaSendEmail}
+                  </Button>
+                  <Button type="submit" className="flex-1" disabled={mfaLoading || !mfaCode}>
+                    {mfaLoading ? t.submitLoading : t.mfaSubmit}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
 
           <div className="text-sm text-muted-foreground">
             {t.switchPrompt}{" "}
