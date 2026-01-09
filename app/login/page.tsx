@@ -60,6 +60,7 @@ export default function LoginPage() {
       mfaSendEmail: "Enviar código por correo",
       mfaEmailSent: "Código enviado a tu correo.",
       mfaError: "No pudimos verificar el código. Intenta nuevamente.",
+      forgotPrompt: "¿Olvidaste tu contraseña?",
     },
     en: {
       title: "Welcome back",
@@ -87,6 +88,7 @@ export default function LoginPage() {
       mfaSendEmail: "Send email code",
       mfaEmailSent: "Email code sent.",
       mfaError: "We couldn't verify the code. Please try again.",
+      forgotPrompt: "Forgot your password?",
     },
   } as const
 
@@ -243,6 +245,13 @@ export default function LoginPage() {
               {loading ? t.submitLoading : t.submitIdle}
             </Button>
           </form>
+
+          <Link
+            href="/forgot-password"
+            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors block"
+          >
+            {t.forgotPrompt}
+          </Link>
 
           {mfaRequired && (
             <div className="rounded-2xl border border-border/80 bg-muted/40 p-4 text-left space-y-3">

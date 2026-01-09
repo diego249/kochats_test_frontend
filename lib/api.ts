@@ -159,6 +159,56 @@ export function resendVerification(email: string) {
 }
 
 // =========================
+// Password reset endpoints
+// =========================
+
+export type PasswordResetValidation = {
+  valid: boolean
+  mfa_required?: boolean
+  methods?: MfaMethod[]
+}
+
+export function requestPasswordReset(email: string) {
+  return apiCall<{ ok: boolean }>("/api/auth/password-reset/request/", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+    skipAuthRedirect: true,
+  })
+}
+
+export function validatePasswordReset(token: string) {
+  return apiCall<PasswordResetValidation>("/api/auth/password-reset/validate/", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+    skipAuthRedirect: true,
+  })
+}
+
+export function confirmPasswordReset(
+  token: string,
+  newPassword: string,
+  options?: { method?: MfaMethod; code?: string },
+) {
+  const payload: Record<string, any> = {
+    token,
+    new_password: newPassword,
+  }
+
+  if (options?.method && options.code) {
+    payload.mfa = {
+      method: options.method,
+      code: options.code,
+    }
+  }
+
+  return apiCall<{ ok: boolean }>("/api/auth/password-reset/confirm/", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    skipAuthRedirect: true,
+  })
+}
+
+// =========================
 // MFA endpoints
 // =========================
 
