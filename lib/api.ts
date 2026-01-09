@@ -593,3 +593,86 @@ export function updateOwnerPassword(
     return data
   })
 }
+
+// =========================
+// Recovery email endpoints
+// =========================
+
+export type RecoveryEmailStatus = {
+  recovery_email_present: boolean
+  recovery_email_verified: boolean
+  recovery_email_masked?: string | null
+  pending_challenge: boolean
+  pending_email_masked?: string | null
+  mfa_required_for_changes: boolean
+}
+
+export type RecoveryEmailStepUp = {
+  method?: MfaMethod
+  code?: string
+  password?: string
+}
+
+export function getRecoveryEmailStatus() {
+  return apiCall<RecoveryEmailStatus>("/api/auth/security/recovery-email/")
+}
+
+export function requestRecoveryEmail(email: string, options?: RecoveryEmailStepUp) {
+  const payload: Record<string, any> = { email }
+
+  if (options?.password) {
+    payload.password = options.password
+  }
+  if (options?.method) {
+    payload.method = options.method
+  }
+  if (options?.code) {
+    payload.code = options.code
+  }
+
+  return apiCall<{ status: string; expires_in_seconds?: number }>(
+    "/api/auth/security/recovery-email/request/",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
+export function verifyRecoveryEmail(code: string) {
+  return apiCall<{ status: string; recovery_email?: string; verified_at?: string }>(
+    "/api/auth/security/recovery-email/verify/",
+    {
+      method: "POST",
+      body: JSON.stringify({ code }),
+    },
+  )
+}
+
+export function resendRecoveryEmail() {
+  return apiCall<{ status: string; expires_in_seconds?: number }>(
+    "/api/auth/security/recovery-email/resend/",
+    {
+      method: "POST",
+    },
+  )
+}
+
+export function removeRecoveryEmail(options?: RecoveryEmailStepUp) {
+  const payload: Record<string, any> = {}
+
+  if (options?.password) {
+    payload.password = options.password
+  }
+  if (options?.method) {
+    payload.method = options.method
+  }
+  if (options?.code) {
+    payload.code = options.code
+  }
+
+  return apiCall<{ status: string }>("/api/auth/security/recovery-email/remove/", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  })
+}

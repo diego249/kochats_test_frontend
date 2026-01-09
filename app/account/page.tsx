@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/sidebar"
 import { DashboardHeader } from "@/components/dashboard-header"
@@ -20,6 +20,12 @@ import {
   startEmailChange,
   verifyEmailChange,
   updateOwnerPassword,
+  getRecoveryEmailStatus,
+  requestRecoveryEmail,
+  verifyRecoveryEmail,
+  resendRecoveryEmail,
+  removeRecoveryEmail,
+  type RecoveryEmailStatus,
   type MfaMethod,
 } from "@/lib/api"
 import { getAuthToken, getAuthUser, type AuthUser } from "@/lib/auth"
@@ -27,6 +33,8 @@ import { useLanguage } from "@/components/language-provider"
 import {
   BadgeCheck,
   CalendarClock,
+  ChevronDown,
+  ChevronRight,
   Copy,
   KeyRound,
   Lock,
@@ -39,6 +47,7 @@ import {
   ShieldCheck,
   ShieldOff,
   Smartphone,
+  LifeBuoy,
   User,
 } from "lucide-react"
 
@@ -94,6 +103,35 @@ export default function AccountPage() {
   const [emailChangeMethod, setEmailChangeMethod] = useState<MfaMethod>("totp")
   const [emailChangeMfaCode, setEmailChangeMfaCode] = useState("")
   const [showEmailForm, setShowEmailForm] = useState(false)
+  const [recoveryStatus, setRecoveryStatus] = useState<RecoveryEmailStatus | null>(null)
+  const [recoveryStatusError, setRecoveryStatusError] = useState("")
+  const [recoveryStatusLoading, setRecoveryStatusLoading] = useState(false)
+  const [recoveryEmail, setRecoveryEmail] = useState("")
+  const [recoveryPassword, setRecoveryPassword] = useState("")
+  const [recoveryMethod, setRecoveryMethod] = useState<MfaMethod>("totp")
+  const [recoveryMfaCode, setRecoveryMfaCode] = useState("")
+  const [recoveryCode, setRecoveryCode] = useState("")
+  const [recoveryRequestLoading, setRecoveryRequestLoading] = useState(false)
+  const [recoveryVerifyLoading, setRecoveryVerifyLoading] = useState(false)
+  const [recoveryResendLoading, setRecoveryResendLoading] = useState(false)
+  const [recoveryRemoveLoading, setRecoveryRemoveLoading] = useState(false)
+  const [recoveryRequestMessage, setRecoveryRequestMessage] = useState("")
+  const [recoveryRequestError, setRecoveryRequestError] = useState("")
+  const [recoveryVerifyMessage, setRecoveryVerifyMessage] = useState("")
+  const [recoveryVerifyError, setRecoveryVerifyError] = useState("")
+  const [recoveryResendMessage, setRecoveryResendMessage] = useState("")
+  const [recoveryResendError, setRecoveryResendError] = useState("")
+  const [recoveryRemoveMessage, setRecoveryRemoveMessage] = useState("")
+  const [recoveryRemoveError, setRecoveryRemoveError] = useState("")
+  const [removeMethod, setRemoveMethod] = useState<MfaMethod>("totp")
+  const [removeMfaCode, setRemoveMfaCode] = useState("")
+  const [removePassword, setRemovePassword] = useState("")
+  const [recoveryEmailOtpMessage, setRecoveryEmailOtpMessage] = useState("")
+  const [recoveryEmailOtpError, setRecoveryEmailOtpError] = useState(false)
+  const [recoveryEmailOtpLoading, setRecoveryEmailOtpLoading] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [recoveryOpen, setRecoveryOpen] = useState(false)
+  const [mfaOpen, setMfaOpen] = useState(false)
 
   const copy = useMemo(
     () => ({
@@ -144,6 +182,38 @@ export default function AccountPage() {
           emailSent: "Código enviado. Revisa tu bandeja.",
           mfaLocked: "Demasiados intentos. Intenta más tarde.",
           mfaEnableFirst: "Activa MFA antes de cambiar la contraseña.",
+        },
+        recovery: {
+          heading: "Correo de recuperación",
+          subtitle: "Agrega un correo de respaldo para recuperar el acceso si pierdes MFA o el inbox principal.",
+          missing: "Aún no tienes correo de recuperación.",
+          pending: "Pendiente de verificación",
+          verified: "Correo de recuperación verificado",
+          currentLabel: "Correo de recuperación",
+          pendingLabel: "Correo pendiente",
+          newEmailLabel: "Nuevo correo de recuperación",
+          requestCta: "Enviar código",
+          requesting: "Enviando...",
+          requestSent: "Enviamos un código a tu correo de recuperación. Caduca en 15 minutos.",
+          codeLabel: "Código de verificación",
+          verifyCta: "Confirmar código",
+          verifySuccess: "Correo de recuperación verificado.",
+          resendCta: "Reenviar código",
+          resendSuccess: "Reenviamos el código. Revisa tu bandeja.",
+          removeTitle: "Quitar correo de recuperación",
+          removeCta: "Quitar",
+          removed: "Correo de recuperación eliminado.",
+          passwordLabel: "Contraseña",
+          passwordRequired: "Ingresa tu contraseña para continuar.",
+          mfaRequired: "Activa MFA para actualizar o eliminar el correo de recuperación.",
+          stepUpHint: "Confirma esta acción con MFA o tu contraseña.",
+          challengeMissing: "No hay un challenge activo. Inicia uno nuevo enviando un código.",
+          restart: "Reiniciar",
+          addReminder: "Agrega un correo de recuperación para agilizar el acceso si pierdes tus códigos.",
+          cooldownHint: "Códigos válidos por 15 minutos. Puedes reenviar cada 60s.",
+          pendingHelp: "Ingresa el código de 6 dígitos que enviamos.",
+          emailOtpSent: "Código enviado a tu correo. Revisa tu bandeja.",
+          genericError: "No pudimos completar esta acción. Intenta nuevamente.",
         },
         badges: {
           owner: "Propietario",
@@ -237,6 +307,38 @@ export default function AccountPage() {
           mfaLocked: "Too many attempts. Try again later.",
           mfaEnableFirst: "Enable MFA before changing the password.",
         },
+        recovery: {
+          heading: "Recovery email",
+          subtitle: "Add a backup email to regain access if you lose MFA or your main inbox.",
+          missing: "No recovery email yet.",
+          pending: "Pending verification",
+          verified: "Recovery email verified",
+          currentLabel: "Recovery email",
+          pendingLabel: "Pending email",
+          newEmailLabel: "Recovery email",
+          requestCta: "Send code",
+          requesting: "Sending...",
+          requestSent: "We sent a code to your recovery email. It expires in 15 minutes.",
+          codeLabel: "Verification code",
+          verifyCta: "Confirm code",
+          verifySuccess: "Recovery email verified.",
+          resendCta: "Resend code",
+          resendSuccess: "Code resent. Check your inbox.",
+          removeTitle: "Remove recovery email",
+          removeCta: "Remove",
+          removed: "Recovery email removed.",
+          passwordLabel: "Password",
+          passwordRequired: "Enter your password to continue.",
+          mfaRequired: "Enable MFA to update or remove the recovery email.",
+          stepUpHint: "Confirm this action with MFA or your password.",
+          challengeMissing: "No active challenge. Start again by sending a new code.",
+          restart: "Start over",
+          addReminder: "Add a recovery email to speed up account recovery.",
+          cooldownHint: "Codes last 15 minutes; resend every 60s.",
+          pendingHelp: "Enter the 6-digit code we sent.",
+          emailOtpSent: "Code sent to your email. Check your inbox.",
+          genericError: "We couldn't complete this action. Please try again.",
+        },
         badges: {
           owner: "Owner",
           plan: "Plan",
@@ -311,6 +413,8 @@ export default function AccountPage() {
       setDisableMethod(authUser.mfaPreferredMethod as MfaMethod)
       setRegenMethod(authUser.mfaPreferredMethod as MfaMethod)
       setEmailChangeMethod(authUser.mfaPreferredMethod as MfaMethod)
+      setRecoveryMethod(authUser.mfaPreferredMethod as MfaMethod)
+      setRemoveMethod(authUser.mfaPreferredMethod as MfaMethod)
     }
     if (authUser?.mfaEnabled) {
       setPasswordMfaRequired(true)
@@ -397,6 +501,50 @@ export default function AccountPage() {
   }
 
   const passwordMfaNeeded = mfaEnabled || passwordMfaRequired
+  const recoveryChangesBlocked = !!recoveryStatus?.mfa_required_for_changes && !mfaEnabled
+  const recoveryPendingChallenge = !!recoveryStatus?.pending_challenge
+  const recoveryEmailMasked = recoveryStatus?.recovery_email_masked
+  const pendingRecoveryEmailMasked = recoveryStatus?.pending_email_masked
+  const hasRecoveryTarget = recoveryStatus?.recovery_email_present || recoveryPendingChallenge
+  const recoveryStatusLabel = recoveryStatus?.recovery_email_verified
+    ? t.recovery.verified
+    : recoveryPendingChallenge
+      ? t.recovery.pending
+      : t.recovery.missing
+  const recoveryBadgeClass = recoveryStatus?.recovery_email_verified
+    ? "bg-emerald-600 text-white hover:bg-emerald-700"
+    : recoveryPendingChallenge
+      ? "bg-amber-50 border-amber-200 text-amber-800"
+      : "bg-slate-100 border-slate-200 text-slate-700"
+
+  const fetchRecoveryStatus = useCallback(
+    async (options?: { silent?: boolean }) => {
+      setRecoveryStatusError("")
+      if (!options?.silent) {
+        setRecoveryStatusLoading(true)
+      }
+      try {
+        const data = await getRecoveryEmailStatus()
+        setRecoveryStatus(data)
+      } catch (err: any) {
+        setRecoveryStatusError(
+          err instanceof ApiError ? err.message || t.recovery.genericError : t.recovery.genericError,
+        )
+      } finally {
+        if (!options?.silent) {
+          setRecoveryStatusLoading(false)
+        }
+      }
+    },
+    [t.recovery.genericError],
+  )
+
+  useEffect(() => {
+    if (authUser) {
+      fetchRecoveryStatus()
+    }
+  }, [authUser, fetchRecoveryStatus])
+
   const handleStartTotpSetup = async () => {
     setMfaError("")
     setMfaSuccess("")
@@ -532,6 +680,179 @@ export default function AccountPage() {
     }
   }
 
+  const handleSendRecoveryEmailOtp = async () => {
+    setRecoveryEmailOtpMessage("")
+    setRecoveryEmailOtpError(false)
+    setRecoveryEmailOtpLoading(true)
+    try {
+      await sendMfaEmailCode()
+      setRecoveryEmailOtpMessage(t.recovery.emailOtpSent)
+      setRecoveryMethod("email")
+      setRemoveMethod("email")
+    } catch (err: any) {
+      setRecoveryEmailOtpError(true)
+      setRecoveryEmailOtpMessage(err.message || t.recovery.genericError)
+    } finally {
+      setRecoveryEmailOtpLoading(false)
+    }
+  }
+
+  const handleRequestRecoveryEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setRecoveryRequestError("")
+    setRecoveryRequestMessage("")
+    setRecoveryVerifyMessage("")
+    setRecoveryVerifyError("")
+
+    if (recoveryChangesBlocked) {
+      setRecoveryRequestError(t.recovery.mfaRequired)
+      return
+    }
+
+    if (!recoveryEmail) {
+      setRecoveryRequestError(t.recovery.genericError)
+      return
+    }
+
+    const payload: Record<string, any> = {}
+    if (mfaEnabled) {
+      if (!recoveryMfaCode) {
+        setRecoveryRequestError(t.password.mfaRequired)
+        return
+      }
+      payload.method = recoveryMethod
+      payload.code = recoveryMfaCode
+    } else {
+      if (!recoveryPassword) {
+        setRecoveryRequestError(t.recovery.passwordRequired)
+        return
+      }
+      payload.password = recoveryPassword
+    }
+
+    setRecoveryRequestLoading(true)
+    try {
+      await requestRecoveryEmail(recoveryEmail, payload)
+      setRecoveryRequestMessage(t.recovery.requestSent)
+      setRecoveryPassword("")
+      setRecoveryMfaCode("")
+      await fetchRecoveryStatus({ silent: true })
+    } catch (err: any) {
+      if (err instanceof ApiError) {
+        if (err.status === 403 && recoveryChangesBlocked) {
+          setRecoveryRequestError(t.recovery.mfaRequired)
+        } else {
+          setRecoveryRequestError(err.message || t.recovery.genericError)
+        }
+      } else {
+        setRecoveryRequestError(t.recovery.genericError)
+      }
+    } finally {
+      setRecoveryRequestLoading(false)
+    }
+  }
+
+  const handleVerifyRecoveryEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setRecoveryVerifyError("")
+    setRecoveryVerifyMessage("")
+    setRecoveryResendMessage("")
+    setRecoveryResendError("")
+    setRecoveryVerifyLoading(true)
+    try {
+      await verifyRecoveryEmail(recoveryCode)
+      setRecoveryVerifyMessage(t.recovery.verifySuccess)
+      setRecoveryCode("")
+      await fetchRecoveryStatus({ silent: true })
+    } catch (err: any) {
+      if (err instanceof ApiError && [400, 423, 429].includes(err.status)) {
+        setRecoveryVerifyError(err.message || t.recovery.genericError)
+      } else if (err instanceof ApiError) {
+        setRecoveryVerifyError(err.message || t.recovery.genericError)
+      } else {
+        setRecoveryVerifyError(t.recovery.genericError)
+      }
+    } finally {
+      setRecoveryVerifyLoading(false)
+    }
+  }
+
+  const handleResendRecoveryEmail = async () => {
+    setRecoveryResendError("")
+    setRecoveryResendMessage("")
+    setRecoveryVerifyError("")
+    setRecoveryEmailOtpMessage("")
+    setRecoveryEmailOtpError(false)
+    setRecoveryResendLoading(true)
+    try {
+      await resendRecoveryEmail()
+      setRecoveryResendMessage(t.recovery.resendSuccess)
+      await fetchRecoveryStatus({ silent: true })
+    } catch (err: any) {
+      if (err instanceof ApiError && [400, 423, 429].includes(err.status)) {
+        setRecoveryResendError(err.message || t.recovery.genericError)
+      } else if (err instanceof ApiError) {
+        setRecoveryResendError(err.message || t.recovery.genericError)
+      } else {
+        setRecoveryResendError(t.recovery.genericError)
+      }
+    } finally {
+      setRecoveryResendLoading(false)
+    }
+  }
+
+  const handleRemoveRecoveryEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setRecoveryRemoveError("")
+    setRecoveryRemoveMessage("")
+
+    if (recoveryChangesBlocked) {
+      setRecoveryRemoveError(t.recovery.mfaRequired)
+      return
+    }
+
+    const payload: Record<string, any> = {}
+    if (mfaEnabled) {
+      if (!removeMfaCode) {
+        setRecoveryRemoveError(t.password.mfaRequired)
+        return
+      }
+      payload.method = removeMethod
+      payload.code = removeMfaCode
+    } else {
+      if (!removePassword) {
+        setRecoveryRemoveError(t.recovery.passwordRequired)
+        return
+      }
+      payload.password = removePassword
+    }
+
+    setRecoveryRemoveLoading(true)
+    try {
+      const result = await removeRecoveryEmail(payload)
+      setRecoveryRemoveMessage(
+        result?.status === "no_recovery_email" ? t.recovery.missing : t.recovery.removed,
+      )
+      setRemoveMfaCode("")
+      setRemovePassword("")
+      await fetchRecoveryStatus({ silent: true })
+    } catch (err: any) {
+      if (err instanceof ApiError) {
+        if (err.status === 403) {
+          setRecoveryRemoveError(t.recovery.mfaRequired)
+        } else if (err.status === 423) {
+          setRecoveryRemoveError(t.password.mfaLocked)
+        } else {
+          setRecoveryRemoveError(err.message || t.recovery.genericError)
+        }
+      } else {
+        setRecoveryRemoveError(t.recovery.genericError)
+      }
+    } finally {
+      setRecoveryRemoveLoading(false)
+    }
+  }
+
   const handleStartEmailChange = async (e: React.FormEvent) => {
     e.preventDefault()
     setEmailChangeMessage("")
@@ -634,11 +955,10 @@ export default function AccountPage() {
                 <AlertDescription>{t.password.ownerOnly}</AlertDescription>
               </Alert>
             )}
-
             <Card className="rounded-2xl shadow-sm border-border/70 bg-card">
               <CardContent className="p-0">
                 <div className="px-6 py-5 bg-muted/60 border-b border-border/70 rounded-t-2xl">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold text-foreground">{t.profile.heading}</p>
                       <p className="text-xs text-muted-foreground">{t.profile.verifyHint}</p>
@@ -653,120 +973,637 @@ export default function AccountPage() {
                         </Badge>
                       )}
                       {authUser?.isOrgOwner && <Badge variant="secondary">{t.badges.owner}</Badge>}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => setProfileOpen((prev) => !prev)}
+                        aria-expanded={profileOpen}
+                      >
+                        {profileOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                      </Button>
                     </div>
                   </div>
                 </div>
 
-                <div className="divide-y divide-border/70">
-                  <div className="flex items-center justify-between px-6 py-4 hover:bg-muted/40 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
-                        <User className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{authUser?.username}</p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Mail className="w-3.5 h-3.5" />
-                          <span>{authUser?.email}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between px-6 py-4 hover:bg-muted/40 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
-                        <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">
-                          {authUser?.emailVerified ? t.profile.verified : t.profile.notVerified}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{t.profile.verifyHint}</p>
-                      </div>
-                    </div>
-                    {authUser?.emailVerified ? (
-                      <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                        <BadgeCheck className="w-4 h-4" />
-                        {t.profile.verified}
-                      </span>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={handleVerifyRedirect}
-                        className="gap-2"
-                      >
-                        <ShieldAlert className="w-4 h-4" />
-                        {t.profile.verifyCta}
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="px-6 py-4 border-t border-border/70 bg-muted/30">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
-                          <Mail className="w-5 h-5 text-indigo-600 dark:text-indigo-300" />
+                {profileOpen && (
+                  <div className="divide-y divide-border/70">
+                    <div className="flex items-center justify-between px-6 py-4 hover:bg-muted/40 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                          <User className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-foreground">{t.profile.changeEmail}</p>
-                          <p className="text-xs text-muted-foreground">{t.profile.startHint}</p>
+                          <p className="text-sm font-semibold text-foreground">{authUser?.username}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>{authUser?.email}</span>
+                          </div>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowEmailForm((prev) => !prev)}
-                        className="gap-2"
-                        disabled={!mfaEnabled}
-                      >
-                        {showEmailForm ? t.profile.hideEmailForm : t.profile.changeEmailCta}
-                      </Button>
                     </div>
 
-                    {showEmailForm && (
-                      <>
-                        {emailChangeError && (
-                          <Alert variant="destructive" className="mt-3">
-                            <AlertDescription>{emailChangeError}</AlertDescription>
-                          </Alert>
-                        )}
-                        {emailChangeMessage && (
-                          <Alert className="mt-3 border-green-200 bg-green-50 text-green-800">
-                            <AlertDescription>{emailChangeMessage}</AlertDescription>
-                          </Alert>
-                        )}
-                        {emailVerifySuccess && (
-                          <Alert className="mt-3 border-green-200 bg-green-50 text-green-800">
-                            <AlertDescription>{emailVerifySuccess}</AlertDescription>
-                          </Alert>
-                        )}
-                        {emailVerifyError && (
-                          <Alert variant="destructive" className="mt-3">
-                            <AlertDescription>{emailVerifyError}</AlertDescription>
-                          </Alert>
-                        )}
+                    <div className="flex items-center justify-between px-6 py-4 hover:bg-muted/40 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+                          <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">
+                            {authUser?.emailVerified ? t.profile.verified : t.profile.notVerified}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{t.profile.verifyHint}</p>
+                        </div>
+                      </div>
+                      {authUser?.emailVerified ? (
+                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                          <BadgeCheck className="w-4 h-4" />
+                          {t.profile.verified}
+                        </span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={handleVerifyRedirect}
+                          className="gap-2"
+                        >
+                          <ShieldAlert className="w-4 h-4" />
+                          {t.profile.verifyCta}
+                        </Button>
+                      )}
+                    </div>
 
-                        <div className="grid gap-4 md:grid-cols-2 mt-4">
-                          <form
-                            className="rounded-lg border border-border/70 bg-card p-4 space-y-3"
-                            onSubmit={handleStartEmailChange}
-                          >
+                    <div className="px-6 py-4 border-t border-border/70 bg-muted/30">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                            <Mail className="w-5 h-5 text-indigo-600 dark:text-indigo-300" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{t.profile.changeEmail}</p>
+                            <p className="text-xs text-muted-foreground">{t.profile.startHint}</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowEmailForm((prev) => !prev)}
+                          className="gap-2"
+                          disabled={!mfaEnabled}
+                        >
+                          {showEmailForm ? t.profile.hideEmailForm : t.profile.changeEmailCta}
+                        </Button>
+                      </div>
+
+                      {showEmailForm && (
+                        <>
+                          {emailChangeError && (
+                            <Alert variant="destructive" className="mt-3">
+                              <AlertDescription>{emailChangeError}</AlertDescription>
+                            </Alert>
+                          )}
+                          {emailChangeMessage && (
+                            <Alert className="mt-3 border-green-200 bg-green-50 text-green-800">
+                              <AlertDescription>{emailChangeMessage}</AlertDescription>
+                            </Alert>
+                          )}
+                          {emailVerifySuccess && (
+                            <Alert className="mt-3 border-green-200 bg-green-50 text-green-800">
+                              <AlertDescription>{emailVerifySuccess}</AlertDescription>
+                            </Alert>
+                          )}
+                          {emailVerifyError && (
+                            <Alert variant="destructive" className="mt-3">
+                              <AlertDescription>{emailVerifyError}</AlertDescription>
+                            </Alert>
+                          )}
+
+                          <div className="grid gap-4 md:grid-cols-2 mt-4">
+                            <form
+                              className="rounded-lg border border-border/70 bg-card p-4 space-y-3"
+                              onSubmit={handleStartEmailChange}
+                            >
+                              <div className="space-y-2">
+                                <Label htmlFor="new-email" className="text-xs text-muted-foreground">
+                                  {t.profile.newEmailLabel}
+                                </Label>
+                                <Input
+                                  id="new-email"
+                                  type="email"
+                                  value={newEmail}
+                                  onChange={(e) => setNewEmail(e.target.value)}
+                                  required
+                                  disabled={emailChangeLoading || !mfaEnabled}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <Label className="text-xs text-muted-foreground">{t.password.mfaMethod}</Label>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="gap-2"
+                                    onClick={handleSendPasswordEmailCode}
+                                    disabled={passwordEmailLoading || !mfaEnabled}
+                                  >
+                                    <Mail className="w-4 h-4" />
+                                    {passwordEmailLoading ? t.password.submitting : t.password.sendEmail}
+                                  </Button>
+                                </div>
+                                {renderMethodButtons(emailChangeMethod, setEmailChangeMethod, {
+                                  disabled: emailChangeLoading || !mfaEnabled,
+                                })}
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="email-change-mfa" className="text-xs text-muted-foreground">
+                                  {t.password.mfaCode}
+                                </Label>
+                                <Input
+                                  id="email-change-mfa"
+                                  value={emailChangeMfaCode}
+                                  onChange={(e) => setEmailChangeMfaCode(e.target.value)}
+                                  inputMode="numeric"
+                                  autoComplete="one-time-code"
+                                  maxLength={10}
+                                  required
+                                  disabled={emailChangeLoading || !mfaEnabled}
+                                />
+                              </div>
+                              <Button
+                                type="submit"
+                                disabled={
+                                  emailChangeLoading || !mfaEnabled || !newEmail || !emailChangeMfaCode
+                                }
+                                className="w-full"
+                              >
+                                {emailChangeLoading ? t.password.submitting : t.profile.startChange}
+                              </Button>
+                              {!mfaEnabled && (
+                                <p className="text-[11px] text-muted-foreground">{t.password.mfaEnableFirst}</p>
+                              )}
+                            </form>
+
+                            <form
+                              className="rounded-lg border border-border/70 bg-card p-4 space-y-3"
+                              onSubmit={handleVerifyEmailChange}
+                            >
+                              <div className="space-y-2">
+                                <Label htmlFor="email-verify-code" className="text-xs text-muted-foreground">
+                                  {t.profile.codeLabel}
+                                </Label>
+                                <Input
+                                  id="email-verify-code"
+                                  value={emailVerifyCode}
+                                  onChange={(e) => setEmailVerifyCode(e.target.value)}
+                                  inputMode="numeric"
+                                  autoComplete="one-time-code"
+                                  maxLength={6}
+                                  required
+                                  disabled={emailVerifyLoading}
+                                />
+                              </div>
+                              <Button
+                                type="submit"
+                                disabled={emailVerifyLoading || !emailVerifyCode}
+                                className="w-full"
+                              >
+                                {emailVerifyLoading ? t.password.submitting : t.profile.verifyEmail}
+                              </Button>
+                            </form>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="px-6 py-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+                            <KeyRound className="w-5 h-5 text-blue-700 dark:text-blue-300" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{t.password.heading}</p>
+                            <p className="text-xs text-muted-foreground">{t.password.subtitle}</p>
+                            <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-1">
+                              <CalendarClock className="w-3.5 h-3.5" />
+                              <span>
+                                {t.password.lastChange}: {t.password.unknown}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowPasswordForm((prev) => !prev)}
+                          className="gap-2"
+                          disabled={!canChangePassword}
+                        >
+                          {showPasswordForm ? t.password.hide : t.password.cta}
+                        </Button>
+                      </div>
+
+                      {showPasswordForm && (
+                        <div className="mt-4 rounded-xl border border-border/80 bg-muted/50 px-4 py-4">
+                          <form className="space-y-4" onSubmit={handlePasswordUpdate}>
+                            {error && (
+                              <Alert variant="destructive">
+                                <AlertDescription>{error}</AlertDescription>
+                              </Alert>
+                            )}
+                            {success && (
+                              <Alert className="border-green-200 bg-green-50 text-green-800">
+                                <AlertDescription>{success}</AlertDescription>
+                              </Alert>
+                            )}
                             <div className="space-y-2">
-                              <Label htmlFor="new-email" className="text-xs text-muted-foreground">
-                                {t.profile.newEmailLabel}
+                              <Label htmlFor="current-password" className="text-xs text-muted-foreground">
+                                {t.password.current}
+                              </Label>
+                              <div className="relative">
+                                <Lock className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground" />
+                                <Input
+                                  id="current-password"
+                                  type="password"
+                                  required
+                                  value={currentPassword}
+                                  onChange={(e) => setCurrentPassword(e.target.value)}
+                                  className="pl-10"
+                                  disabled={loading || !canChangePassword}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="new-password" className="text-xs text-muted-foreground">
+                                {t.password.new}
                               </Label>
                               <Input
-                                id="new-email"
-                                type="email"
-                                value={newEmail}
-                                onChange={(e) => setNewEmail(e.target.value)}
+                                id="new-password"
+                                type="password"
                                 required
-                                disabled={emailChangeLoading || !mfaEnabled}
+                                minLength={8}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                disabled={loading || !canChangePassword}
                               />
                             </div>
                             <div className="space-y-2">
+                              <Label htmlFor="confirm-password" className="text-xs text-muted-foreground">
+                                {t.password.confirm}
+                              </Label>
+                              <Input
+                                id="confirm-password"
+                                type="password"
+                                required
+                                minLength={8}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                disabled={loading || !canChangePassword}
+                              />
+                            </div>
+                            {passwordMfaNeeded && (
+                              <div className="space-y-2 border-t border-border/80 pt-4 mt-2">
+                                <div className="flex items-center justify-between">
+                                  <Label className="text-xs text-muted-foreground">{t.password.mfaMethod}</Label>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={handleSendPasswordEmailCode}
+                                      disabled={passwordEmailLoading}
+                                      className="gap-2"
+                                    >
+                                      <Mail className="w-4 h-4" />
+                                      {passwordEmailLoading ? t.password.submitting : t.password.sendEmail}
+                                    </Button>
+                                  </div>
+                                </div>
+                                {renderMethodButtons(passwordMfaMethod, setPasswordMfaMethod, {
+                                  disabled: loading,
+                                })}
+                                <div className="space-y-2">
+                                  <Label htmlFor="password-mfa-code" className="text-xs text-muted-foreground">
+                                    {t.password.mfaCode}
+                                  </Label>
+                                  <Input
+                                    id="password-mfa-code"
+                                    value={passwordMfaCode}
+                                    onChange={(e) => setPasswordMfaCode(e.target.value)}
+                                    inputMode="numeric"
+                                    autoComplete="one-time-code"
+                                    maxLength={10}
+                                    disabled={loading}
+                                    required={passwordMfaNeeded}
+                                  />
+                                </div>
+                                {passwordEmailMessage && (
+                                  <Alert
+                                    variant={passwordEmailError ? "destructive" : "default"}
+                                    className={
+                                      passwordEmailError ? undefined : "border-green-200 bg-green-50 text-green-800"
+                                    }
+                                  >
+                                    <AlertDescription>{passwordEmailMessage}</AlertDescription>
+                                  </Alert>
+                                )}
+                              </div>
+                            )}
+                            <Button
+                              type="submit"
+                              className="w-full"
+                              disabled={loading || !canChangePassword || (passwordMfaNeeded && !passwordMfaCode)}
+                            >
+                              {loading ? t.password.submitting : t.password.submit}
+                            </Button>
+                          </form>
+                          {!canChangePassword && disabledReason && (
+                            <p className="text-xs text-muted-foreground mt-3">{disabledReason}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl shadow-sm border-border/70 bg-card">
+              <CardContent className="p-0">
+                <div className="px-6 py-5 bg-muted/60 border-b border-border/70 rounded-t-2xl">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-foreground">{t.recovery.heading}</p>
+                      <p className="text-xs text-muted-foreground">{t.recovery.subtitle}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      <Badge variant="outline" className={recoveryBadgeClass}>
+                        {recoveryStatusLabel}
+                      </Badge>
+                      {recoveryEmailMasked && (
+                        <span className="text-xs text-muted-foreground">
+                          {t.recovery.currentLabel}: {recoveryEmailMasked}
+                        </span>
+                      )}
+                      {pendingRecoveryEmailMasked && (
+                        <span className="text-xs text-muted-foreground">
+                          {t.recovery.pendingLabel}: {pendingRecoveryEmailMasked}
+                        </span>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => setRecoveryOpen((prev) => !prev)}
+                        aria-expanded={recoveryOpen}
+                      >
+                        {recoveryOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                {recoveryOpen && (
+                  <div className="p-6 space-y-4">
+                    {recoveryStatusError && (
+                      <Alert variant="destructive">
+                        <AlertDescription>{recoveryStatusError}</AlertDescription>
+                      </Alert>
+                    )}
+                    {recoveryStatusLoading && (
+                      <p className="text-xs text-muted-foreground">{t.password.submitting}</p>
+                    )}
+                    {!recoveryStatusLoading && !recoveryStatus?.recovery_email_present && (
+                      <Alert className="bg-slate-100 border-slate-200 text-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-50">
+                        <AlertDescription>{t.recovery.addReminder}</AlertDescription>
+                      </Alert>
+                    )}
+                    {recoveryChangesBlocked && (
+                      <Alert variant="default" className="bg-amber-50 border-amber-200 text-amber-900">
+                        <AlertDescription>{t.recovery.mfaRequired}</AlertDescription>
+                      </Alert>
+                    )}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <form
+                        className="rounded-xl border border-border/70 bg-muted/40 p-4 space-y-3"
+                        onSubmit={handleRequestRecoveryEmail}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center">
+                            <LifeBuoy className="w-5 h-5 text-sky-600 dark:text-sky-300" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{t.recovery.heading}</p>
+                            <p className="text-[11px] text-muted-foreground">{t.recovery.stepUpHint}</p>
+                          </div>
+                        </div>
+                        {recoveryRequestError && (
+                          <Alert variant="destructive">
+                            <AlertDescription>{recoveryRequestError}</AlertDescription>
+                          </Alert>
+                        )}
+                        {recoveryRequestMessage && (
+                          <Alert className="border-green-200 bg-green-50 text-green-800">
+                            <AlertDescription>{recoveryRequestMessage}</AlertDescription>
+                          </Alert>
+                        )}
+                        <div className="space-y-2">
+                          <Label htmlFor="recovery-email" className="text-xs text-muted-foreground">
+                            {t.recovery.newEmailLabel}
+                          </Label>
+                          <Input
+                            id="recovery-email"
+                            type="email"
+                            value={recoveryEmail}
+                            onChange={(e) => setRecoveryEmail(e.target.value)}
+                            required
+                            disabled={recoveryRequestLoading || recoveryChangesBlocked}
+                          />
+                        </div>
+                        {mfaEnabled ? (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <Label className="text-xs text-muted-foreground">{t.password.mfaMethod}</Label>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="gap-2"
+                                onClick={handleSendRecoveryEmailOtp}
+                                disabled={recoveryEmailOtpLoading || recoveryChangesBlocked}
+                              >
+                                <Mail className="w-4 h-4" />
+                                {recoveryEmailOtpLoading ? t.password.submitting : t.mfa.sendEmailCode}
+                              </Button>
+                            </div>
+                            {renderMethodButtons(recoveryMethod, setRecoveryMethod, {
+                              disabled: recoveryRequestLoading || recoveryChangesBlocked,
+                            })}
+                            <div className="space-y-2">
+                              <Label htmlFor="recovery-mfa-code" className="text-xs text-muted-foreground">
+                                {t.password.mfaCode}
+                              </Label>
+                              <Input
+                                id="recovery-mfa-code"
+                                value={recoveryMfaCode}
+                                onChange={(e) => setRecoveryMfaCode(e.target.value)}
+                                inputMode="numeric"
+                                autoComplete="one-time-code"
+                                maxLength={10}
+                                disabled={recoveryRequestLoading || recoveryChangesBlocked}
+                                required={mfaEnabled}
+                              />
+                            </div>
+                          </>
+                        ) : (
+                          <div className="space-y-2">
+                            <Label htmlFor="recovery-password" className="text-xs text-muted-foreground">
+                              {t.recovery.passwordLabel}
+                            </Label>
+                            <Input
+                              id="recovery-password"
+                              type="password"
+                              value={recoveryPassword}
+                              onChange={(e) => setRecoveryPassword(e.target.value)}
+                              disabled={recoveryRequestLoading || recoveryChangesBlocked}
+                              required
+                            />
+                          </div>
+                        )}
+                        {recoveryEmailOtpMessage && (
+                          <Alert
+                            variant={recoveryEmailOtpError ? "destructive" : "default"}
+                            className={
+                              recoveryEmailOtpError ? undefined : "border-green-200 bg-green-50 text-green-800"
+                            }
+                          >
+                            <AlertDescription>{recoveryEmailOtpMessage}</AlertDescription>
+                          </Alert>
+                        )}
+                        <Button
+                          type="submit"
+                          disabled={
+                            recoveryRequestLoading ||
+                            recoveryChangesBlocked ||
+                            !recoveryEmail ||
+                            (mfaEnabled ? !recoveryMfaCode : !recoveryPassword)
+                          }
+                          className="w-full"
+                        >
+                          {recoveryRequestLoading ? t.recovery.requesting : t.recovery.requestCta}
+                        </Button>
+                        <p className="text-[11px] text-muted-foreground">{t.recovery.cooldownHint}</p>
+                      </form>
+
+                      <div className="space-y-4">
+                        <div className="rounded-xl border border-border/70 bg-muted/30 p-4 space-y-3">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center">
+                              <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-300" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">
+                                {recoveryPendingChallenge ? t.recovery.pending : t.recovery.challengeMissing}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {recoveryPendingChallenge
+                                  ? pendingRecoveryEmailMasked
+                                    ? `${t.recovery.pendingLabel}: ${pendingRecoveryEmailMasked}`
+                                    : t.recovery.pendingHelp
+                                  : t.recovery.challengeMissing}
+                              </p>
+                            </div>
+                          </div>
+                          {recoveryVerifyError && (
+                            <Alert variant="destructive">
+                              <AlertDescription>{recoveryVerifyError}</AlertDescription>
+                            </Alert>
+                          )}
+                          {recoveryVerifyMessage && (
+                            <Alert className="border-green-200 bg-green-50 text-green-800">
+                              <AlertDescription>{recoveryVerifyMessage}</AlertDescription>
+                            </Alert>
+                          )}
+                          {recoveryResendError && (
+                            <Alert variant="destructive">
+                              <AlertDescription>{recoveryResendError}</AlertDescription>
+                            </Alert>
+                          )}
+                          {recoveryResendMessage && (
+                            <Alert className="border-green-200 bg-green-50 text-green-800">
+                              <AlertDescription>{recoveryResendMessage}</AlertDescription>
+                            </Alert>
+                          )}
+                          <form className="space-y-3" onSubmit={handleVerifyRecoveryEmail}>
+                            <div className="space-y-2">
+                              <Label htmlFor="recovery-code" className="text-xs text-muted-foreground">
+                                {t.recovery.codeLabel}
+                              </Label>
+                              <Input
+                                id="recovery-code"
+                                value={recoveryCode}
+                                onChange={(e) => setRecoveryCode(e.target.value)}
+                                inputMode="numeric"
+                                autoComplete="one-time-code"
+                                maxLength={6}
+                                disabled={recoveryVerifyLoading}
+                                required
+                              />
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <Button type="submit" disabled={recoveryVerifyLoading || !recoveryCode}>
+                                {recoveryVerifyLoading ? t.password.submitting : t.recovery.verifyCta}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleResendRecoveryEmail}
+                                disabled={recoveryResendLoading}
+                              >
+                                {recoveryResendLoading ? t.password.submitting : t.recovery.resendCta}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setRecoveryCode("")
+                                  fetchRecoveryStatus()
+                                }}
+                              >
+                                {t.recovery.restart}
+                              </Button>
+                            </div>
+                          </form>
+                        </div>
+
+                        <form
+                          className="rounded-xl border border-border/70 bg-muted/30 p-4 space-y-3"
+                          onSubmit={handleRemoveRecoveryEmail}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center">
+                              <ShieldOff className="w-4 h-4 text-rose-600 dark:text-rose-300" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">{t.recovery.removeTitle}</p>
+                              <p className="text-xs text-muted-foreground">{t.recovery.stepUpHint}</p>
+                            </div>
+                          </div>
+                          {recoveryRemoveError && (
+                            <Alert variant="destructive">
+                              <AlertDescription>{recoveryRemoveError}</AlertDescription>
+                            </Alert>
+                          )}
+                          {recoveryRemoveMessage && (
+                            <Alert className="border-green-200 bg-green-50 text-green-800">
+                              <AlertDescription>{recoveryRemoveMessage}</AlertDescription>
+                            </Alert>
+                          )}
+                          {mfaEnabled ? (
+                            <>
                               <div className="flex items-center justify-between">
                                 <Label className="text-xs text-muted-foreground">{t.password.mfaMethod}</Label>
                                 <Button
@@ -774,227 +1611,64 @@ export default function AccountPage() {
                                   variant="ghost"
                                   size="sm"
                                   className="gap-2"
-                                  onClick={handleSendPasswordEmailCode}
-                                  disabled={passwordEmailLoading || !mfaEnabled}
+                                  onClick={handleSendRecoveryEmailOtp}
+                                  disabled={recoveryEmailOtpLoading || recoveryChangesBlocked}
                                 >
                                   <Mail className="w-4 h-4" />
-                                  {passwordEmailLoading ? t.password.submitting : t.password.sendEmail}
+                                  {recoveryEmailOtpLoading ? t.password.submitting : t.mfa.sendEmailCode}
                                 </Button>
                               </div>
-                              {renderMethodButtons(emailChangeMethod, setEmailChangeMethod, {
-                                disabled: emailChangeLoading || !mfaEnabled,
-                              })}
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="email-change-mfa" className="text-xs text-muted-foreground">
-                                {t.password.mfaCode}
-                              </Label>
-                              <Input
-                                id="email-change-mfa"
-                                value={emailChangeMfaCode}
-                                onChange={(e) => setEmailChangeMfaCode(e.target.value)}
-                                inputMode="numeric"
-                                autoComplete="one-time-code"
-                                maxLength={10}
-                                required
-                                disabled={emailChangeLoading || !mfaEnabled}
-                              />
-                            </div>
-                            <Button
-                              type="submit"
-                              disabled={
-                                emailChangeLoading || !mfaEnabled || !newEmail || !emailChangeMfaCode
-                              }
-                              className="w-full"
-                            >
-                              {emailChangeLoading ? t.password.submitting : t.profile.startChange}
-                            </Button>
-                            {!mfaEnabled && (
-                              <p className="text-[11px] text-muted-foreground">{t.password.mfaEnableFirst}</p>
-                            )}
-                          </form>
-
-                          <form
-                            className="rounded-lg border border-border/70 bg-card p-4 space-y-3"
-                            onSubmit={handleVerifyEmailChange}
-                          >
-                            <div className="space-y-2">
-                              <Label htmlFor="email-verify-code" className="text-xs text-muted-foreground">
-                                {t.profile.codeLabel}
-                              </Label>
-                              <Input
-                                id="email-verify-code"
-                                value={emailVerifyCode}
-                                onChange={(e) => setEmailVerifyCode(e.target.value)}
-                                inputMode="numeric"
-                                autoComplete="one-time-code"
-                                maxLength={6}
-                                required
-                                disabled={emailVerifyLoading}
-                              />
-                            </div>
-                            <Button
-                              type="submit"
-                              disabled={emailVerifyLoading || !emailVerifyCode}
-                              className="w-full"
-                            >
-                              {emailVerifyLoading ? t.password.submitting : t.profile.verifyEmail}
-                            </Button>
-                          </form>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="px-6 py-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
-                          <KeyRound className="w-5 h-5 text-blue-700 dark:text-blue-300" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">{t.password.heading}</p>
-                          <p className="text-xs text-muted-foreground">{t.password.subtitle}</p>
-                          <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-1">
-                            <CalendarClock className="w-3.5 h-3.5" />
-                            <span>
-                              {t.password.lastChange}: {t.password.unknown}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowPasswordForm((prev) => !prev)}
-                        className="gap-2"
-                        disabled={!canChangePassword}
-                      >
-                        {showPasswordForm ? t.password.hide : t.password.cta}
-                      </Button>
-                    </div>
-
-                    {showPasswordForm && (
-                      <div className="mt-4 rounded-xl border border-border/80 bg-muted/50 px-4 py-4">
-                        <form className="space-y-4" onSubmit={handlePasswordUpdate}>
-                          {error && (
-                            <Alert variant="destructive">
-                              <AlertDescription>{error}</AlertDescription>
-                            </Alert>
-                          )}
-                          {success && (
-                            <Alert className="border-green-200 bg-green-50 text-green-800">
-                              <AlertDescription>{success}</AlertDescription>
-                            </Alert>
-                          )}
-                          <div className="space-y-2">
-                            <Label htmlFor="current-password" className="text-xs text-muted-foreground">
-                              {t.password.current}
-                            </Label>
-                            <div className="relative">
-                              <Lock className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground" />
-                            <Input
-                              id="current-password"
-                              type="password"
-                              required
-                              value={currentPassword}
-                              onChange={(e) => setCurrentPassword(e.target.value)}
-                              className="pl-10"
-                              disabled={loading || !canChangePassword}
-                            />
-                          </div>
-                        </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="new-password" className="text-xs text-muted-foreground">
-                              {t.password.new}
-                            </Label>
-                            <Input
-                              id="new-password"
-                              type="password"
-                              required
-                              minLength={8}
-                              value={newPassword}
-                              onChange={(e) => setNewPassword(e.target.value)}
-                              disabled={loading || !canChangePassword}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="confirm-password" className="text-xs text-muted-foreground">
-                              {t.password.confirm}
-                            </Label>
-                            <Input
-                              id="confirm-password"
-                              type="password"
-                              required
-                              minLength={8}
-                              value={confirmPassword}
-                              onChange={(e) => setConfirmPassword(e.target.value)}
-                              disabled={loading || !canChangePassword}
-                            />
-                          </div>
-                          {passwordMfaNeeded && (
-                            <div className="space-y-2 border-t border-border/80 pt-4 mt-2">
-                              <div className="flex items-center justify-between">
-                                <Label className="text-xs text-muted-foreground">{t.password.mfaMethod}</Label>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleSendPasswordEmailCode}
-                                    disabled={passwordEmailLoading}
-                                    className="gap-2"
-                                  >
-                                    <Mail className="w-4 h-4" />
-                                    {passwordEmailLoading ? t.password.submitting : t.password.sendEmail}
-                                  </Button>
-                                </div>
-                              </div>
-                              {renderMethodButtons(passwordMfaMethod, setPasswordMfaMethod, {
-                                disabled: loading,
+                              {renderMethodButtons(removeMethod, setRemoveMethod, {
+                                disabled: recoveryRemoveLoading || recoveryChangesBlocked,
                               })}
                               <div className="space-y-2">
-                                <Label htmlFor="password-mfa-code" className="text-xs text-muted-foreground">
+                                <Label htmlFor="remove-mfa-code" className="text-xs text-muted-foreground">
                                   {t.password.mfaCode}
                                 </Label>
                                 <Input
-                                  id="password-mfa-code"
-                                  value={passwordMfaCode}
-                                  onChange={(e) => setPasswordMfaCode(e.target.value)}
+                                  id="remove-mfa-code"
+                                  value={removeMfaCode}
+                                  onChange={(e) => setRemoveMfaCode(e.target.value)}
                                   inputMode="numeric"
                                   autoComplete="one-time-code"
                                   maxLength={10}
-                                  disabled={loading}
-                                  required={passwordMfaNeeded}
+                                  disabled={recoveryRemoveLoading || recoveryChangesBlocked}
+                                  required={mfaEnabled}
                                 />
                               </div>
-                              {passwordEmailMessage && (
-                                <Alert
-                                  variant={passwordEmailError ? "destructive" : "default"}
-                                  className={
-                                    passwordEmailError ? undefined : "border-green-200 bg-green-50 text-green-800"
-                                  }
-                                >
-                                  <AlertDescription>{passwordEmailMessage}</AlertDescription>
-                                </Alert>
-                              )}
+                            </>
+                          ) : (
+                            <div className="space-y-2">
+                              <Label htmlFor="remove-password" className="text-xs text-muted-foreground">
+                                {t.recovery.passwordLabel}
+                              </Label>
+                              <Input
+                                id="remove-password"
+                                type="password"
+                                value={removePassword}
+                                onChange={(e) => setRemovePassword(e.target.value)}
+                                disabled={recoveryRemoveLoading || recoveryChangesBlocked}
+                                required
+                              />
                             </div>
                           )}
                           <Button
                             type="submit"
-                            className="w-full"
-                            disabled={loading || !canChangePassword || (passwordMfaNeeded && !passwordMfaCode)}
+                            variant="destructive"
+                            disabled={
+                              recoveryRemoveLoading ||
+                              recoveryChangesBlocked ||
+                              !hasRecoveryTarget ||
+                              (mfaEnabled ? !removeMfaCode : !removePassword)
+                            }
                           >
-                            {loading ? t.password.submitting : t.password.submit}
+                            {recoveryRemoveLoading ? t.password.submitting : t.recovery.removeCta}
                           </Button>
                         </form>
-                        {!canChangePassword && disabledReason && (
-                          <p className="text-xs text-muted-foreground mt-3">{disabledReason}</p>
-                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -1018,11 +1692,22 @@ export default function AccountPage() {
                           {t.mfa.methods[authUser.mfaPreferredMethod as MfaMethod]}
                         </Badge>
                       )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => setMfaOpen((prev) => !prev)}
+                        aria-expanded={mfaOpen}
+                      >
+                        {mfaOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                      </Button>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-6 space-y-6">
+                {mfaOpen && (
+                  <div className="p-6 space-y-6">
                   {!authUser?.emailVerified && (
                     <Alert variant="default" className="bg-amber-50 border-amber-200 text-amber-900">
                       <AlertDescription>{t.mfa.verifyEmailFirst}</AlertDescription>
@@ -1314,7 +1999,8 @@ export default function AccountPage() {
                       )}
                     </form>
                   </div>
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
