@@ -256,7 +256,6 @@ export default function DataSourcesPage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="postgres">PostgreSQL</SelectItem>
-                            <SelectItem value="bigquery">BigQuery</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
